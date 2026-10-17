@@ -1,0 +1,29 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html, body {
+    margin: 0;
+    padding: 0;
+    background-color: #fff9ed;
+    color: #1e1c13;
+    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  }
+
+  /* Custom scrollbar handling for authentic corkboard aesthetic */
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
+  .scrollbar-none {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
+
+/* Tactile paper card lift animation */
+.notice-card {
+  transform-origin: center top;
+  backface-visibility: hidden;
+  will-change: transform, box-shadow;
+}
