@@ -25,6 +25,17 @@ public class EventService {
     }
 
     @Transactional(readOnly = true)
+    public List<EventItem> adminEvents(String publicationStatus) {
+        if (publicationStatus == null || publicationStatus.isBlank() || "all".equalsIgnoreCase(publicationStatus)) {
+            return repository.findAllByOrderByCreatedAtDesc();
+        }
+        if (!List.of("Pending", "Approved", "Rejected", "Draft").contains(publicationStatus)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unsupported publication status");
+        }
+        return repository.findByPublicationStatusOrderByStartDateAsc(publicationStatus);
+    }
+
+    @Transactional(readOnly = true)
     public List<EventItem> pendingEvents() {
         return repository.findByPublicationStatusOrderByStartDateAsc("Pending");
     }
