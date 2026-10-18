@@ -3,6 +3,8 @@ import { eventService } from '../services/eventService';
 import { EventItem, PublicationStatus } from '../types/event';
 import { formatEventDateRange } from '../utils/dateUtils';
 import { Pushpin } from '../components/common/Pushpin';
+import { appConfig } from '../config/appConfig';
+import { BackendAdminReview } from './BackendAdminReview';
 
 export const AdminReviewPage: React.FC = () => {
   const [events, setEvents] = useState<EventItem[]>([]);
@@ -62,6 +64,9 @@ export const AdminReviewPage: React.FC = () => {
   const pendingCount = events.filter((ev) => ev.publicationStatus === 'Pending').length;
   const approvedCount = events.filter((ev) => ev.publicationStatus === 'Approved').length;
   const rejectedCount = events.filter((ev) => ev.publicationStatus === 'Rejected').length;
+
+  // Use the real Spring Boot review desk whenever the backend is configured.
+  if (appConfig.apiBaseUrl) return <BackendAdminReview />;
 
   return (
     <div className="w-full bg-[#84532B] p-2 sm:p-4 lg:p-6 shadow-[inset_0_12px_30px_rgba(0,0,0,0.55)] min-h-screen py-8">
