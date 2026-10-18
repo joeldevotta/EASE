@@ -28,6 +28,11 @@ public class EventController {
         return service.submit(submission);
     }
 
+    @GetMapping("/admin/events")
+    public List<EventItem> adminEvents(@RequestParam(required = false) String status) {
+        return service.adminEvents(status);
+    }
+
     @GetMapping("/admin/events/pending")
     public List<EventItem> pending() { return service.pendingEvents(); }
 
