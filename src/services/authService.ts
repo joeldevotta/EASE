@@ -27,28 +27,7 @@ export interface DemoAccount {
   notes: string;
 }
 
-export const DEMO_STUDENT_ACCOUNTS: DemoAccount[] = [
-  {
-    identifier: '310621104001',
-    alternateIdentifier: 'student@easwari.ac.in',
-    password: 'student123',
-    name: 'Aravind S (CSE - Final Year)',
-    department: 'Computer Science & Engineering',
-    email: 'student@easwari.ac.in',
-    role: 'student',
-    notes: 'Department Symposium Student Coordinator',
-  },
-  {
-    identifier: '310622106042',
-    alternateIdentifier: 'priya.k@easwari.ac.in',
-    password: 'student123',
-    name: 'Priya K (ECE - 3rd Year)',
-    department: 'Electronics & Communication Engineering',
-    email: 'priya.k@easwari.ac.in',
-    role: 'student',
-    notes: 'Rotaract Club Joint Secretary',
-  },
-];
+export const DEMO_STUDENT_ACCOUNTS: DemoAccount[] = [];
 
 export const DEMO_STAFF_ACCOUNTS: DemoAccount[] = [
   {
@@ -147,47 +126,8 @@ export const authService = {
    * Validates student demo credentials.
    * Rejects invalid or unregistered credentials with a clear error message.
    */
-  loginStudent(
-    identifier: string,
-    password: string
-  ): { success: boolean; user?: AuthUser; error?: string } {
-    const trimmedId = identifier.trim().toLowerCase();
-    const trimmedPass = password.trim();
-
-    const matchedAccount = DEMO_STUDENT_ACCOUNTS.find(
-      (acc) =>
-        acc.identifier.toLowerCase() === trimmedId ||
-        acc.alternateIdentifier.toLowerCase() === trimmedId
-    );
-
-    if (!matchedAccount) {
-      return {
-        success: false,
-        error:
-          'Student account not found. Please enter one of the demo Register Numbers or College Emails provided in the guidance panel below.',
-      };
-    }
-
-    // Allow account password or standard fallback demo password
-    if (matchedAccount.password !== trimmedPass && trimmedPass !== 'easwari@student') {
-      return {
-        success: false,
-        error:
-          'Incorrect student password. Please enter the valid demo password (student123) shown in the credentials panel.',
-      };
-    }
-
-    const user: AuthUser = {
-      identifier: matchedAccount.identifier,
-      email: matchedAccount.email,
-      name: matchedAccount.name,
-      department: matchedAccount.department,
-      role: 'student',
-      loggedInAt: new Date().toISOString(),
-    };
-
-    this.setSession(user);
-    return { success: true, user };
+  loginStudent(_identifier: string, _password: string): { success: boolean; user?: AuthUser; error?: string } {
+    return { success: false, error: 'Student sign-in requires the E.A.S.E. backend. Please configure VITE_API_BASE_URL and register an account.' };
   },
 
   /**
@@ -353,10 +293,6 @@ export const authService = {
       error:
         'Official account not recognized. Please provide an authorized Employee ID or Official Faculty Email from the demo roster.',
     };
-  },
-
-  getDemoStudentAccounts(): DemoAccount[] {
-    return DEMO_STUDENT_ACCOUNTS;
   },
 
   getDemoStaffAccounts(): DemoAccount[] {
