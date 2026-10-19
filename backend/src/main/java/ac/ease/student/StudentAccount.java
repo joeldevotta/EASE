@@ -42,6 +42,7 @@ public class StudentAccount {
     public AccountStatus getStatus() { return status; }
     public Instant getCreatedAt() { return createdAt; }
     public void setStatus(AccountStatus status) { this.status = status; }
+    public void setPasswordHash(String passwordHash) { this.passwordHash = passwordHash; }
 
     public enum AccountStatus { PENDING, APPROVED, REJECTED }
 }
