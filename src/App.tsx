@@ -15,6 +15,7 @@ import { ContactPage } from './pages/ContactPage';
 import { EventSubmissionPage } from './pages/EventSubmissionPage';
 import { OdPortalPage } from './pages/OdPortalPage';
 import { AdminReviewPage } from './pages/AdminReviewPage';
+import { StudentAccountsReviewPage } from './pages/StudentAccountsReviewPage';
 import { StaffOdReviewPage } from './pages/StaffOdReviewPage';
 import { LoginSelectionPage } from './pages/LoginSelectionPage';
 import { StudentLoginPage } from './pages/StudentLoginPage';
@@ -100,6 +101,14 @@ export const App: React.FC = () => {
             />
 
             {/* Admin-Only Protected Route (Requires Admin Role) */}
+            <Route
+              path="/admin-students"
+              element={
+                <ProtectedRoute allowedRoles={['admin']}>
+                  <StudentAccountsReviewPage />
+                </ProtectedRoute>
+              }
+            />
             <Route
               path="/admin-review"
               element={
