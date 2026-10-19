@@ -105,7 +105,7 @@ export const LoginSelectionPage: React.FC = () => {
                 </p>
 
                 <p className="font-body-sm text-xs text-on-surface-variant mt-3 leading-relaxed">
-                  Sign in with your student registration number or college email to access symposiums, hackathons, and OD forms.
+                  Create an account with your college register number, then sign in to access symposiums, hackathons, and OD forms.
                 </p>
 
                 <ul className="mt-4 space-y-1.5 text-xs text-on-surface-variant font-body-sm">
@@ -136,7 +136,7 @@ export const LoginSelectionPage: React.FC = () => {
                   onClick={() => navigate('/login/student')}
                   className="w-full bg-primary hover:bg-primary-container text-on-primary py-2.5 px-4 rounded font-title-md text-xs sm:text-sm shadow-[0_3px_0_#0f1f30] active:translate-y-0.5 transition-all flex items-center justify-center gap-2 font-bold"
                 >
-                  <span>Student Login</span>
+                  <span>Student Login / Register</span>
                   <span className="material-symbols-outlined text-base">arrow_forward</span>
                 </button>
               </div>
