@@ -16,8 +16,12 @@ import org.springframework.web.filter.OncePerRequestFilter;
 @Component
 public class StudentJwtFilter extends OncePerRequestFilter {
     private final StudentTokenService tokens;
+    private final StudentAccountRepository accounts;
 
-    public StudentJwtFilter(StudentTokenService tokens) { this.tokens = tokens; }
+    public StudentJwtFilter(StudentTokenService tokens, StudentAccountRepository accounts) {
+        this.tokens = tokens;
+        this.accounts = accounts;
+    }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
@@ -27,9 +31,16 @@ public class StudentJwtFilter extends OncePerRequestFilter {
             String token = header.substring(7).trim();
             try {
                 String registerNumber = tokens.validateAndGetRegisterNumber(token);
-                var auth = new UsernamePasswordAuthenticationToken(
-                    registerNumber, null, List.of(new SimpleGrantedAuthority("ROLE_STUDENT")));
-                SecurityContextHolder.getContext().setAuthentication(auth);
+                boolean approved = accounts.findByRegisterNumber(registerNumber)
+                    .map(account -> account.getStatus() == StudentAccount.AccountStatus.APPROVED)
+                    .orElse(false);
+                if (approved) {
+                    var auth = new UsernamePasswordAuthenticationToken(
+                        registerNumber, null, List.of(new SimpleGrantedAuthority("ROLE_STUDENT")));
+                    SecurityContextHolder.getContext().setAuthentication(auth);
+                } else {
+                    SecurityContextHolder.clearContext();
+                }
             } catch (JwtException | IllegalArgumentException ex) {
                 SecurityContextHolder.clearContext();
             }
