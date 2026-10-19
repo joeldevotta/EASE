@@ -18,6 +18,7 @@ import { AdminReviewPage } from './pages/AdminReviewPage';
 import { StaffOdReviewPage } from './pages/StaffOdReviewPage';
 import { LoginSelectionPage } from './pages/LoginSelectionPage';
 import { StudentLoginPage } from './pages/StudentLoginPage';
+import { StudentRegisterPage } from './pages/StudentRegisterPage';
 import { AdminLoginPage } from './pages/AdminLoginPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 
@@ -52,6 +53,7 @@ export const App: React.FC = () => {
           {/* Public Authentication Gateways - Only the clean login interface (No navbar, no search bar, no footer stats) */}
           <Route path="/login" element={<LoginSelectionPage />} />
           <Route path="/login/student" element={<StudentLoginPage />} />
+          <Route path="/register/student" element={<StudentRegisterPage />} />
           <Route path="/login/admin" element={<AdminLoginPage />} />
 
           {/* Protected Internal Routes - Wrapped in MainLayout with Navbar & Footer */}
