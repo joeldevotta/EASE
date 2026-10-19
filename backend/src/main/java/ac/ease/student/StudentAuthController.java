@@ -5,6 +5,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import java.util.Map;
+import java.nio.charset.StandardCharsets;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -37,11 +38,21 @@ public class StudentAuthController {
     @PostMapping("/register")
     public ResponseEntity<?> register(@Valid @RequestBody RegisterRequest request) {
         String registerNumber = request.registerNumber().trim().toUpperCase();
-        if (accounts.existsByRegisterNumber(registerNumber)) {
+        if (request.password().getBytes(StandardCharsets.UTF_8).length > 72) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Password must be at most 72 UTF-8 bytes."));
+        }
+        var existing = accounts.findByRegisterNumber(registerNumber).orElse(null);
+        if (existing != null && existing.getStatus() != StudentAccount.AccountStatus.REJECTED) {
             return ResponseEntity.status(HttpStatus.CONFLICT)
                 .body(Map.of("message", "An account already exists for this register number. Contact student support if this is your account."));
         }
-        accounts.save(new StudentAccount(registerNumber, passwords.encode(request.password())));
+        if (existing != null) {
+            existing.setPasswordHash(passwords.encode(request.password()));
+            existing.setStatus(StudentAccount.AccountStatus.PENDING);
+            accounts.save(existing);
+        } else {
+            accounts.save(new StudentAccount(registerNumber, passwords.encode(request.password())));
+        }
         return ResponseEntity.status(HttpStatus.CREATED).body(Map.of(
             "status", "PENDING",
             "message", "Registration received. Your account must be approved before you can sign in."
@@ -51,6 +62,9 @@ public class StudentAuthController {
     @PostMapping("/login")
     public ResponseEntity<?> login(@Valid @RequestBody LoginRequest request) {
         String registerNumber = request.registerNumber().trim().toUpperCase();
+        if (request.password().getBytes(StandardCharsets.UTF_8).length > 72) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "Invalid register number or password."));
+        }
         var account = accounts.findByRegisterNumber(registerNumber).orElse(null);
         if (account == null || !passwords.matches(request.password(), account.getPasswordHash())) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "Invalid register number or password."));
