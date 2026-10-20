@@ -3,6 +3,7 @@ import { appConfig } from '../config/appConfig';
 import { EventItem, PublicationStatus } from '../types/event';
 import { formatEventDateRange } from '../utils/dateUtils';
 import { Pushpin } from '../components/common/Pushpin';
+import { Link } from 'react-router-dom';
 
 type ReviewStatus = 'Pending' | 'Approved' | 'Rejected' | 'all';
 
@@ -104,6 +105,7 @@ export const BackendAdminReview: React.FC = () => {
               <div>
                 <h1 className="font-display-lg text-2xl sm:text-3xl text-primary font-serif font-bold">E.A.S.E. Event Review Desk</h1>
                 <p className="font-label-sm text-xs text-outline uppercase tracking-wider mt-1">Connected to the Java Spring Boot backend</p>
+                <Link to="/admin-students" className="inline-block mt-2 text-xs font-bold text-amber-900 underline">Review student registrations →</Link>
               </div>
               <span className={`px-3 py-1 rounded text-xs font-bold ${connected ? 'bg-emerald-100 text-emerald-900' : 'bg-amber-100 text-amber-900'}`}>
                 {connected ? 'Backend connected' : 'Backend login required'}

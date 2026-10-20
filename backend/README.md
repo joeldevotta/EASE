@@ -1,6 +1,6 @@
-# E.A.S.E. Java backend (events first)
+# E.A.S.E. Java backend
 
-Spring Boot REST API for the existing React/TypeScript app. It lives in `backend/`; the frontend is unchanged. The API uses the same camelCase event fields as `src/types/event.ts`. Visual-only notice-board fields are accepted and persisted so the current UI can retain its design.
+Spring Boot REST API for the React/TypeScript app. It lives in `backend/` and uses the same camelCase event fields as `src/types/event.ts`. Student accounts are stored in MySQL, passwords are BCrypt-hashed, and approved student sessions use short-lived signed bearer tokens.
 
 ## Requirements
 - JDK 21+
@@ -24,6 +24,7 @@ $env:DB_USERNAME="root"
 $env:DB_PASSWORD="your-mysql-password"
 $env:EASE_ADMIN_USERNAME="ease-admin"
 $env:EASE_ADMIN_PASSWORD="use-a-long-random-password-at-least-16-chars"
+$env:EASE_STUDENT_TOKEN_SECRET="replace-with-a-random-secret-at-least-32-characters-long"
 $env:CORS_ALLOWED_ORIGINS="http://localhost:3000,http://localhost:5173"
 cd backend
 mvn spring-boot:run
@@ -36,6 +37,7 @@ export DB_USERNAME='root'
 export DB_PASSWORD='your-mysql-password'
 export EASE_ADMIN_USERNAME='ease-admin'
 export EASE_ADMIN_PASSWORD='use-a-long-random-password-at-least-16-chars'
+export EASE_STUDENT_TOKEN_SECRET='replace-with-a-random-secret-at-least-32-characters-long'
 export CORS_ALLOWED_ORIGINS='http://localhost:3000,http://localhost:5173'
 cd backend && mvn spring-boot:run
 ```
@@ -52,6 +54,11 @@ The service listens on `http://localhost:8080`. Hibernate creates/updates tables
 | POST | `/api/events` | Public | Submit an event; server forces `Pending` |
 | GET | `/api/admin/events/pending` | Admin HTTP Basic | Pending review queue |
 | PATCH | `/api/admin/events/{id}/status` | Admin HTTP Basic | Approve or reject a pending event |
+| POST | `/api/auth/student/register` | Public | Create a pending student account |
+| POST | `/api/auth/student/login` | Public | Sign in after approval; returns an 8-hour bearer token |
+| GET | `/api/auth/student/me` | Student bearer token | Validate current student session |
+| GET | `/api/admin/students/pending` | Admin HTTP Basic | List pending student registrations |
+| PATCH | `/api/admin/students/{id}/status` | Admin HTTP Basic | Approve or reject a student registration |
 
 Optional public list filters: `?category=Workshop&dept=CSE&status=Open`. `dept` filters department and `status` filters registration status.
 
@@ -77,6 +84,22 @@ curl -u "$EASE_ADMIN_USERNAME:$EASE_ADMIN_PASSWORD" -X PATCH \
   http://localhost:8080/api/admin/events/EVENT_ID/status \
   -H 'Content-Type: application/json' -d '{"status":"Rejected","rejectionReason":"Please include the faculty approval reference."}'
 ```
+
+## Student registration and approval
+
+Students register with a register number and a password of 10–72 characters. Passwords are stored as BCrypt hashes. New accounts start as `PENDING`; an administrator must approve them before they can sign in. A register number alone does not prove identity, so this approval step must be completed only after checking the student's identity against an authoritative college roster.
+
+List pending registrations:
+```powershell
+curl.exe -u "$env:EASE_ADMIN_USERNAME:$env:EASE_ADMIN_PASSWORD" http://localhost:8080/api/admin/students/pending
+```
+
+Approve a student (replace `STUDENT_ID` with the returned numeric id):
+```powershell
+curl.exe -u "$env:EASE_ADMIN_USERNAME:$env:EASE_ADMIN_PASSWORD" -X PATCH http://localhost:8080/api/admin/students/STUDENT_ID/status -H "Content-Type: application/json" -d "{\"status\":\"APPROVED\"}"
+```
+
+Reject using `{"status":"REJECTED"}`. Keep `EASE_STUDENT_TOKEN_SECRET` private and different from the admin password. Use a randomly generated secret of at least 32 characters, configure it in both local and production backend environments, and use HTTPS in production. Frontend tokens are kept in tab-scoped sessionStorage; avoid introducing XSS and consider an HttpOnly-cookie session architecture before handling highly sensitive data.
 
 ## Security notes
 - Public reads expose only approved events; submissions are always pending regardless of any client-supplied status.

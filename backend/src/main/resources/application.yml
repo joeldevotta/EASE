@@ -25,3 +25,5 @@ ease:
   admin:
     username: ${EASE_ADMIN_USERNAME}
     password: ${EASE_ADMIN_PASSWORD}
+  student:
+    token-secret: ${EASE_STUDENT_TOKEN_SECRET}
