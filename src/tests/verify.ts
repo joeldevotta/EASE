@@ -310,14 +310,15 @@ async function runTests() {
   const staffOrAdminRoles: ('student' | 'staff' | 'admin')[] = ['staff', 'admin'];
   const adminOnlyRoles: ('student' | 'staff' | 'admin')[] = ['admin'];
 
-  // 1. Student permissions: can access OD Portal; CANNOT access Event Submission or Admin Review
+  // 1. Student permissions: student login is backend-only; verify local demo login stays disabled.
   authService.clearSession();
   const studentSession = authService.loginStudent('310621104001', 'student123');
-  assert.strictEqual(studentSession.success, true);
-  assert.strictEqual(studentSession.user?.role, 'student');
-  assert.strictEqual(studentRoles.includes(studentSession.user!.role), true, 'Student can access OD Portal');
-  assert.strictEqual(staffOrAdminRoles.includes(studentSession.user!.role), false, 'Student cannot access Event Submission');
-  assert.strictEqual(adminOnlyRoles.includes(studentSession.user!.role), false, 'Student cannot access Admin Review');
+  assert.strictEqual(studentSession.success, false, 'Student credentials must be verified by the backend');
+  assert.match(studentSession.error || '', /backend/i);
+  const studentRole: 'student' = 'student';
+  assert.strictEqual(studentRoles.includes(studentRole), true, 'Student can access OD Portal');
+  assert.strictEqual(staffOrAdminRoles.includes(studentRole), false, 'Student cannot access Event Submission');
+  assert.strictEqual(adminOnlyRoles.includes(studentRole), false, 'Student cannot access Admin Review');
 
   // 2. Staff permissions: can access Event Submission; CANNOT access OD Portal or Admin Review
   authService.clearSession();
