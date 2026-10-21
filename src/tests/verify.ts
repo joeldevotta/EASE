@@ -128,7 +128,7 @@ async function runTests() {
   const initialApproved = eventService.getApprovedEvents();
   const initialCount = initialApproved.length;
 
-  const newDraft = eventService.submitEvent({
+  const newDraft = await eventService.submitEvent({
     title: 'Autonomous Drone Grand Prix',
     organizingClub: 'AeroClub EEC',
     department: 'Department of Mechanical Engineering',
