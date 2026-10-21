@@ -128,7 +128,7 @@ async function runTests() {
   const initialApproved = eventService.getApprovedEvents();
   const initialCount = initialApproved.length;
 
-  const newDraft = eventService.submitEvent({
+  const newDraft = await eventService.submitEvent({
     title: 'Autonomous Drone Grand Prix',
     organizingClub: 'AeroClub EEC',
     department: 'Department of Mechanical Engineering',
@@ -240,26 +240,10 @@ async function runTests() {
   authService.clearSession();
   assert.strictEqual(authService.getSession(), null, 'Initial session is null');
 
-  // 2. Reject random student credentials
-  const badStudent = authService.loginStudent('unknown_student', 'wrongpassword');
-  assert.strictEqual(badStudent.success, false, 'Random student credentials rejected');
-  assert.strictEqual(authService.getSession(), null, 'Session remains null after failed student login');
-
-  // 3. Reject correct student with wrong password
-  const badPassStudent = authService.loginStudent('310621104001', 'wrongpassword');
-  assert.strictEqual(badPassStudent.success, false, 'Student with wrong password rejected');
-  assert.ok(badPassStudent.error?.includes('password'), 'Returns password error message');
-
-  // 4. Accept valid student credentials
-  const goodStudent = authService.loginStudent('310621104001', 'student123');
-  assert.strictEqual(goodStudent.success, true, 'Valid demo student login accepted');
-  assert.strictEqual(goodStudent.user?.role, 'student', 'User role is student');
-  
-  // 5. Verify session persistence in sessionStorage
-  const persistedStudent = authService.getSession();
-  assert.ok(persistedStudent, 'Session stored in sessionStorage');
-  assert.strictEqual(persistedStudent?.identifier, '310621104001');
-  assert.strictEqual(persistedStudent?.role, 'student');
+  // Student authentication must not accept frontend-only demo credentials.
+  const demoStudent = authService.loginStudent('310621104001', 'student123');
+  assert.strictEqual(demoStudent.success, false, 'Frontend-only demo student credentials are disabled');
+  assert.strictEqual(authService.getSession(), null, 'No session is created by demo student login');
 
   // 6. Reject random admin credentials
   authService.clearSession();
@@ -290,7 +274,7 @@ async function runTests() {
   authService.clearSession();
   assert.strictEqual(authService.getSession(), null, 'SessionStorage is completely cleared upon logout');
 
-  console.log('  ✓ Demo credentials authentication, sessionStorage persistence, role assignments, and logout purge verified.');
+  console.log('  ✓ Student demo login is disabled; staff/admin demo session behavior and logout purge verified.');
 
   // Test 8: OD Portal Application Model & Storage
   console.log('\nTest 8: OD Portal Application Model & Storage');
@@ -326,14 +310,15 @@ async function runTests() {
   const staffOrAdminRoles: ('student' | 'staff' | 'admin')[] = ['staff', 'admin'];
   const adminOnlyRoles: ('student' | 'staff' | 'admin')[] = ['admin'];
 
-  // 1. Student permissions: can access OD Portal; CANNOT access Event Submission or Admin Review
+  // 1. Student permissions: student login is backend-only; verify local demo login stays disabled.
   authService.clearSession();
   const studentSession = authService.loginStudent('310621104001', 'student123');
-  assert.strictEqual(studentSession.success, true);
-  assert.strictEqual(studentSession.user?.role, 'student');
-  assert.strictEqual(studentRoles.includes(studentSession.user!.role), true, 'Student can access OD Portal');
-  assert.strictEqual(staffOrAdminRoles.includes(studentSession.user!.role), false, 'Student cannot access Event Submission');
-  assert.strictEqual(adminOnlyRoles.includes(studentSession.user!.role), false, 'Student cannot access Admin Review');
+  assert.strictEqual(studentSession.success, false, 'Student credentials must be verified by the backend');
+  assert.match(studentSession.error || '', /backend/i);
+  const studentRole: 'student' = 'student';
+  assert.strictEqual(studentRoles.includes(studentRole), true, 'Student can access OD Portal');
+  assert.strictEqual(staffOrAdminRoles.includes(studentRole), false, 'Student cannot access Event Submission');
+  assert.strictEqual(adminOnlyRoles.includes(studentRole), false, 'Student cannot access Admin Review');
 
   // 2. Staff permissions: can access Event Submission; CANNOT access OD Portal or Admin Review
   authService.clearSession();

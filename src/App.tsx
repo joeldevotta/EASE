@@ -15,9 +15,11 @@ import { ContactPage } from './pages/ContactPage';
 import { EventSubmissionPage } from './pages/EventSubmissionPage';
 import { OdPortalPage } from './pages/OdPortalPage';
 import { AdminReviewPage } from './pages/AdminReviewPage';
+import { StudentAccountsReviewPage } from './pages/StudentAccountsReviewPage';
 import { StaffOdReviewPage } from './pages/StaffOdReviewPage';
 import { LoginSelectionPage } from './pages/LoginSelectionPage';
 import { StudentLoginPage } from './pages/StudentLoginPage';
+import { StudentRegisterPage } from './pages/StudentRegisterPage';
 import { AdminLoginPage } from './pages/AdminLoginPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 
@@ -52,6 +54,7 @@ export const App: React.FC = () => {
           {/* Public Authentication Gateways - Only the clean login interface (No navbar, no search bar, no footer stats) */}
           <Route path="/login" element={<LoginSelectionPage />} />
           <Route path="/login/student" element={<StudentLoginPage />} />
+          <Route path="/register/student" element={<StudentRegisterPage />} />
           <Route path="/login/admin" element={<AdminLoginPage />} />
 
           {/* Protected Internal Routes - Wrapped in MainLayout with Navbar & Footer */}
@@ -98,6 +101,14 @@ export const App: React.FC = () => {
             />
 
             {/* Admin-Only Protected Route (Requires Admin Role) */}
+            <Route
+              path="/admin-students"
+              element={
+                <ProtectedRoute allowedRoles={['admin']}>
+                  <StudentAccountsReviewPage />
+                </ProtectedRoute>
+              }
+            />
             <Route
               path="/admin-review"
               element={
