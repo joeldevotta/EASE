@@ -43,9 +43,19 @@ public class SecurityConfig {
             .cors(Customizer.withDefaults())
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers(HttpMethod.GET, "/api/events", "/api/events/**", "/api/health").permitAll()
-                .requestMatchers(HttpMethod.POST, "/api/events").permitAll()
-                .requestMatchers("/api/admin/**").hasRole("ADMIN")
+               .requestMatchers(
+    HttpMethod.GET,
+    "/api/events",
+    "/api/events/**",
+    "/api/lost-found",
+    "/api/health"
+).permitAll()
+.requestMatchers(
+    HttpMethod.POST,
+    "/api/events",
+    "/api/lost-found"
+).permitAll()
+.requestMatchers("/api/admin/**").hasRole("ADMIN")
                 .anyRequest().denyAll())
             .httpBasic(Customizer.withDefaults())
             .build();
