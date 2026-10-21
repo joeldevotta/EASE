@@ -47,8 +47,8 @@ public class SecurityConfig {
             .addFilterBefore(studentJwtFilter, UsernamePasswordAuthenticationFilter.class)
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/events", "/api/events/**", "/api/health").permitAll()
-                .requestMatchers(HttpMethod.POST, "/api/events").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/events", "/api/events/**", "/api/lost-found", "/api/health").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/events", "/api/lost-found").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/auth/student/register", "/api/auth/student/login").permitAll()
                 .requestMatchers("/api/auth/student/me").hasRole("STUDENT")
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")

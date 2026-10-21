@@ -133,3 +133,21 @@ When developing the Spring Boot backend, the frontend is already decoupled behin
 - `GET /api/announcements` — Retrieve official circulars and urgent dispatches.
 
 To connect the backend, simply set `VITE_API_BASE_URL=http://localhost:8080/api` in your `.env` file and replace the localStorage storage adapter with `fetch`/`axios` calls in `src/services/`.
+
+
+## Production hardening branch
+
+The `feat/ease-production-hardening` branch combines the student registration/authentication backend with the Lost & Found API. Public event and Lost & Found reads/submissions are available without credentials; all `/api/admin/**` review endpoints require the configured backend admin account. Student JWTs are restricted to approved student accounts.
+
+### Frontend configuration
+
+Set `VITE_API_BASE_URL` to the backend API base URL including `/api` (for example, `https://your-backend.example.com/api`). The backend's `CORS_ALLOWED_ORIGINS` must contain the exact deployed frontend origin. Never put backend admin credentials or the student token secret in Vite variables.
+
+### Required backend environment variables
+
+- `DB_URL`, `DB_USERNAME`, `DB_PASSWORD`
+- `EASE_ADMIN_USERNAME`, `EASE_ADMIN_PASSWORD` (at least 16 characters)
+- `EASE_STUDENT_TOKEN_SECRET` (at least 32 characters)
+- `CORS_ALLOWED_ORIGINS` (comma-separated frontend origins)
+
+GitHub Actions checks the frontend build/tests and backend Maven tests on pushes and pull requests.

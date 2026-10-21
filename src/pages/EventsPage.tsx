@@ -41,26 +41,38 @@ export const EventsPage: React.FC = () => {
     setSearchParams(params, { replace: true });
   }, [searchQuery, category, department, registrationStatus, dateRange, sortBy]);
 
-  // Execute unified filter pipeline
+  const [eventsLoading, setEventsLoading] = useState(true);
+  const [eventsError, setEventsError] = useState<string | null>(null);
+
+  // Execute the filter pipeline and show backend failures instead of an unhandled rejection.
   useEffect(() => {
+    let active = true;
     const fetchFiltered = async () => {
-      const results = await eventService.filterEvents({
-        searchQuery,
-        category: category === 'all' ? undefined : category,
-        department: department === 'all' ? undefined : department,
-        registrationStatus: registrationStatus === 'all' ? undefined : registrationStatus,
-        dateRange,
-        sortBy,
-      });
-      setFilteredEvents(results);
+      setEventsLoading(true);
+      setEventsError(null);
+      try {
+        const results = await eventService.filterEvents({
+          searchQuery,
+          category: category === 'all' ? undefined : category,
+          department: department === 'all' ? undefined : department,
+          registrationStatus: registrationStatus === 'all' ? undefined : registrationStatus,
+          dateRange,
+          sortBy,
+        });
+        if (active) setFilteredEvents(results);
+      } catch (error) {
+        if (active) {
+          setEventsError(error instanceof Error ? error.message : 'Could not load campus events.');
+          setFilteredEvents([]);
+        }
+      } finally {
+        if (active) setEventsLoading(false);
+      }
     };
 
-    fetchFiltered();
-    const unsubscribe = eventService.subscribe(() => {
-      fetchFiltered();
-    });
-
-    return () => unsubscribe();
+    void fetchFiltered();
+    const unsubscribe = eventService.subscribe(() => { void fetchFiltered(); });
+    return () => { active = false; unsubscribe(); };
   }, [searchQuery, category, department, registrationStatus, dateRange, sortBy]);
 
   const handleResetFilters = () => {
@@ -236,7 +248,20 @@ export const EventsPage: React.FC = () => {
           </div>
 
           {/* Masonry Grid of Notices */}
-          {filteredEvents.length > 0 ? (
+          {eventsLoading ? (
+            <div role="status" className="max-w-lg mx-auto rounded-lg bg-[#FFFDF7] p-10 text-center shadow-md">
+              <p className="font-title-md text-primary">Loading campus notices…</p>
+              <p className="mt-2 text-sm text-on-surface-variant">Getting the latest approved events.</p>
+            </div>
+          ) : eventsError ? (
+            <div role="alert" className="max-w-lg mx-auto rounded-lg border border-red-900/15 bg-[#FFFDF7] p-10 text-center shadow-md">
+              <h3 className="font-headline-sm text-lg text-primary font-bold">We couldn’t load campus notices</h3>
+              <p className="mt-2 text-sm text-on-surface-variant">{eventsError}</p>
+              <button type="button" onClick={() => window.location.reload()} className="mt-4 rounded bg-primary px-4 py-2 text-xs font-title-md text-on-primary shadow-sm">
+                Try again
+              </button>
+            </div>
+          ) : filteredEvents.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-6 lg:gap-7 items-start">
               {filteredEvents.map((event) => (
                 <EventPoster
