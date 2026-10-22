@@ -3,6 +3,8 @@ server:
   error:
     include-message: always
 spring:
+  config:
+    import: optional:file:./application-local.yml
   application:
     name: ease-backend
   datasource:

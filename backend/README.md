@@ -7,6 +7,18 @@ Spring Boot REST API for the React/TypeScript app, in `backend/`. Lost & Found s
 - Maven 3.9+
 - MySQL 8+
 
+### Windows JDK selection
+
+If Maven picks up an older JDK from `JAVA_HOME`, use the project-local launcher to run Maven with JDK 27 without changing global Windows environment variables:
+
+```powershell
+.\backend\mvn-jdk.cmd -version
+.\backend\mvn-jdk.cmd clean verify
+.\backend\mvn-jdk.cmd spring-boot:run
+```
+
+The launcher defaults to `C:\Program Files\Java\jdk-27`. Set `EASE_JDK_HOME` in the current terminal first to use another JDK 25+ installation.
+
 ## 1. Create database and credentials
 
 Run in MySQL (or let the JDBC URL create the database if your DB user has permission):
@@ -15,30 +27,25 @@ Run in MySQL (or let the JDBC URL create the database if your DB user has permis
 CREATE DATABASE ease CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
 ```
 
-Configure environment variables before starting the API. Never commit real credentials.
+For local Windows development, copy the example config and replace both placeholder passwords with your existing MySQL root password and a random EASE admin password. The local file is ignored by Git and is loaded only by this backend. Never commit it or real credentials.
 
 PowerShell:
 ```powershell
-$env:DB_URL="jdbc:mysql://localhost:3306/ease?serverTimezone=UTC"
-$env:DB_USERNAME="root"
-$env:DB_PASSWORD="your-mysql-password"
-$env:EASE_ADMIN_USERNAME="ease-admin"
-$env:EASE_ADMIN_PASSWORD="use-a-long-random-password-at-least-16-chars"
 $env:CORS_ALLOWED_ORIGINS="http://localhost:3000,http://localhost:5173"
-cd backend
-mvn spring-boot:run
+Copy-Item .\backend\application-local.example.yml .\backend\application-local.yml
+# Edit backend\application-local.yml and replace both password placeholders.
+.\backend\mvn-jdk.cmd spring-boot:run
 ```
 
 Bash:
 ```bash
-export DB_URL='jdbc:mysql://localhost:3306/ease?serverTimezone=UTC'
-export DB_USERNAME='root'
-export DB_PASSWORD='your-mysql-password'
-export EASE_ADMIN_USERNAME='ease-admin'
-export EASE_ADMIN_PASSWORD='use-a-long-random-password-at-least-16-chars'
 export CORS_ALLOWED_ORIGINS='http://localhost:3000,http://localhost:5173'
-cd backend && mvn spring-boot:run
+cp backend/application-local.example.yml backend/application-local.yml
+# Edit backend/application-local.yml and replace both password placeholders.
+backend/mvn-jdk.cmd spring-boot:run
 ```
+
+Alternatively, supply `DB_URL`, `DB_USERNAME`, `DB_PASSWORD`, `EASE_ADMIN_USERNAME`, and `EASE_ADMIN_PASSWORD` as environment variables. These override the corresponding local YAML values. The default database URL targets MySQL on `localhost:3306`, database `ease`; its `createDatabaseIfNotExist=true` option can create that schema only if the configured MySQL user has permission.
 
 The service listens on `http://localhost:8080`. Hibernate creates/updates tables for local development (`ddl-auto: update` also adds Lost & Found image metadata columns). For production, switch to Flyway migrations and `ddl-auto: validate`.
 
