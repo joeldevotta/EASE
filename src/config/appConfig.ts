@@ -11,12 +11,17 @@ export const appConfig = {
   apiBaseUrl: (typeof import.meta !== 'undefined' && import.meta.env?.VITE_API_BASE_URL) || '',
   odPortalUrl: (typeof import.meta !== 'undefined' && import.meta.env?.VITE_OD_PORTAL_URL) || 'https://odportal.srmeaswari.ac.in',
 
+  lostFound: {
+    maxImageBytes: 5 * 1024 * 1024,
+    acceptedImageLabel: 'JPEG, PNG, or WebP',
+  },
+
   // Campus Contact Coordinates
-  helplinePhone: '+91 44 2249 0853',
+  helplinePhone: '044 - 43923041',
   helplineExt: '204',
   campusAddress: 'Bharathi Salai, Ramapuram, Chennai, Tamil Nadu 600089',
-  examCellEmail: 'coe@easwari.ac.in',
-  studentAffairsEmail: 'studentaffairs@easwari.ac.in',
+  examCellEmail: 'coe@eec.srmrmp.edu.in',
+  studentAffairsEmail: 'studentaffairs@eec.srmrmp.edu.in',
 
   departments: [
     'Computer Science and Engineering (CSE)',
@@ -28,8 +33,8 @@ export const appConfig = {
     'Robotics and Automation (R&A)',
     'Biomedical Engineering (BME)',
     'Artificial Intelligence and Data Science (AI&DS)',
-    'Master of Business Administration (MBA)',
-  ],
+    'Master of Business Administration (MBA)','Computer Science and Engineering - Artificial Intelligence and Machine Learning (AI&ML)',
+    'Cyber Security (CS)','Computer Science and Business Systems (CSBS)'],
 
   storageKeys: {
     events: 'ease_campus_events_v1',

@@ -1,0 +1,36 @@
+server:
+  port: ${PORT:8080}
+  error:
+    include-message: always
+spring:
+  config:
+    import: optional:file:./application-local.yml
+  application:
+    name: ease-backend
+  datasource:
+    url: ${DB_URL:jdbc:mysql://localhost:3306/ease?createDatabaseIfNotExist=true&serverTimezone=UTC}
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        format_sql: true
+  jackson:
+    default-property-inclusion: non_null
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 6MB
+ease:
+  cors:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000,http://localhost:5173}
+  admin:
+    username: ${EASE_ADMIN_USERNAME}
+    password: ${EASE_ADMIN_PASSWORD}
+  lost-found:
+    upload-dir: ${EASE_LOST_FOUND_UPLOAD_DIR:./data/lost-found-images}
+    max-file-size-bytes: ${EASE_LOST_FOUND_MAX_FILE_SIZE_BYTES:5242880}

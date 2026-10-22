@@ -1,0 +1,10 @@
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/ease?createDatabaseIfNotExist=true&serverTimezone=UTC
+    username: root
+    password: "replace-with-your-local-mysql-password"
+
+ease:
+  admin:
+    username: ease-admin
+    password: "replace-with-a-random-password-at-least-16-characters"
