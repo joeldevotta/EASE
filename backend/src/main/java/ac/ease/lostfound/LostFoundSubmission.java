@@ -1,4 +1,4 @@
-﻿package ac.ease.lostfound;
+package ac.ease.lostfound;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;

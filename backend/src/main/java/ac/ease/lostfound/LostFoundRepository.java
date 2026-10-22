@@ -1,4 +1,4 @@
-﻿package ac.ease.lostfound;
+package ac.ease.lostfound;
 
 import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;

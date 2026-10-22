@@ -1,4 +1,4 @@
-﻿package ac.ease.lostfound;
+package ac.ease.lostfound;
 
 import java.time.Instant;
 import com.fasterxml.jackson.annotation.JsonIgnore;

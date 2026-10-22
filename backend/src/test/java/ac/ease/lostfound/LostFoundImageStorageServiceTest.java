@@ -80,7 +80,7 @@ class LostFoundImageStorageServiceTest {
     void rejectsOversizedUpload() {
         LostFoundImageProperties properties = new LostFoundImageProperties();
         properties.setUploadDir(tempDir.toString());
-        properties.setMaxFileSizeBytes(32);
+        properties.setMaxFileSizeBytes(16);
         LostFoundImageStorageService storage = new LostFoundImageStorageService(properties);
 
         MockMultipartFile file = new MockMultipartFile(
@@ -112,6 +112,64 @@ class LostFoundImageStorageServiceTest {
             () -> storage.load("../secret.jpg")
         );
         assertEquals(HttpStatus.NOT_FOUND, missing.getStatusCode());
+    }
+
+    @Test
+    void storesValidWebpImage() throws Exception {
+        LostFoundImageStorageService storage = storage();
+        byte[] webp = new byte[] {
+            'R', 'I', 'F', 'F',
+            0, 0, 0, 0,
+            'W', 'E', 'B', 'P',
+            'V', 'P', '8', ' '
+        };
+        MockMultipartFile file = new MockMultipartFile(
+            "image",
+            "snapshot.webp",
+            "image/webp",
+            webp
+        );
+        StoredLostFoundImage stored = storage.store(file);
+        assertTrue(stored.storedName().endsWith(".webp"));
+        assertEquals("image/webp", stored.contentType());
+        assertTrue(Files.exists(tempDir.resolve(stored.storedName())));
+    }
+
+    @Test
+    void deleteQuietlyRemovesFile() throws Exception {
+        LostFoundImageStorageService storage = storage();
+        MockMultipartFile file = new MockMultipartFile(
+            "image",
+            "photo.jpg",
+            "image/jpeg",
+            jpegBytes()
+        );
+        StoredLostFoundImage stored = storage.store(file);
+        Path filePath = tempDir.resolve(stored.storedName());
+        assertTrue(Files.exists(filePath));
+
+        storage.deleteQuietly(stored.storedName());
+        assertFalse(Files.exists(filePath));
+
+        // Deleting already deleted or non-existent file does not throw
+        assertDoesNotThrow(() -> storage.deleteQuietly(stored.storedName()));
+        assertDoesNotThrow(() -> storage.deleteQuietly(null));
+        assertDoesNotThrow(() -> storage.deleteQuietly(""));
+    }
+
+    @Test
+    void sanitizesFilenameWithPathTraversal() {
+        LostFoundImageStorageService storage = storage();
+        MockMultipartFile file = new MockMultipartFile(
+            "image",
+            "../../etc/passwd.jpg",
+            "image/jpeg",
+            jpegBytes()
+        );
+        StoredLostFoundImage stored = storage.store(file);
+        assertEquals("passwd.jpg", stored.originalName());
+        assertFalse(stored.originalName().contains(".."));
+        assertFalse(stored.originalName().contains("/"));
     }
 
     private LostFoundImageStorageService storage() {

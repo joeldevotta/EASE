@@ -1,9 +1,9 @@
 # E.A.S.E. Java backend (events first)
 
-Spring Boot REST API for the existing React/TypeScript app. It lives in `backend/`; the frontend is unchanged. The API uses the same camelCase event fields as `src/types/event.ts`. Visual-only notice-board fields are accepted and persisted so the current UI can retain its design.
+Spring Boot REST API for the React/TypeScript app, in `backend/`. Lost & Found submissions, images, and the admin review queue are connected to this API when `VITE_API_BASE_URL` is configured. Events still use the frontend's local demo storage. The API uses the same camelCase event fields as `src/types/event.ts`; visual-only notice-board fields are accepted and persisted so the UI can retain its design.
 
 ## Requirements
-- JDK 21+
+- JDK 25+
 - Maven 3.9+
 - MySQL 8+
 
@@ -108,12 +108,12 @@ curl -u "$EASE_ADMIN_USERNAME:$EASE_ADMIN_PASSWORD" -X PATCH \
 - Admin credentials must be provided via environment variables; startup intentionally fails if the password is shorter than 16 characters.
 - Rejections require a reason, and only pending events can be reviewed.
 - CORS origins are configurable. Do not use broad wildcard origins in production.
-- This first slice secures API endpoints; the existing frontend admin screen still uses localStorage until its service adapter is connected. Do not treat a hidden frontend page as access control.
+- The frontend uses this authenticated admin API when configured; without a backend URL, its local demo review desk uses browser storage. Frontend route protection is not a substitute for the backend's authorization.
 
 ## Tests
 ```bash
 mvn test
 ```
 
-## Frontend connection (next step)
-The existing `.env.example` already defines `VITE_API_BASE_URL=http://localhost:8080/api`. The next frontend change should replace the localStorage event adapter with fetch calls, and wire the admin review page to the authenticated admin endpoints. This backend does not change the React app or claim to control the college's separate OD portal.
+## Frontend integration status
+The `.env.example` defines `VITE_API_BASE_URL=http://localhost:8080/api`. Lost & Found uses the API for public reports, multipart image uploads, and authenticated administrative review when this variable is set. Events continue to use the local demo adapter and can be connected in a later change. This backend does not control the college's separate OD portal.

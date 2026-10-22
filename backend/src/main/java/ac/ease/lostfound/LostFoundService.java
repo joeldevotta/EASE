@@ -1,4 +1,4 @@
-﻿package ac.ease.lostfound;
+package ac.ease.lostfound;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
