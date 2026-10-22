@@ -40,7 +40,25 @@ export CORS_ALLOWED_ORIGINS='http://localhost:3000,http://localhost:5173'
 cd backend && mvn spring-boot:run
 ```
 
-The service listens on `http://localhost:8080`. Hibernate creates/updates tables for local development. For production, switch to Flyway migrations and `ddl-auto: validate`.
+The service listens on `http://localhost:8080`. Hibernate creates/updates tables for local development (`ddl-auto: update` also adds Lost & Found image metadata columns). For production, switch to Flyway migrations and `ddl-auto: validate`.
+
+### Lost & Found images (local development)
+
+Reports may include an optional JPEG, PNG, or WebP photo (5 MB default). Files are stored on the local filesystem, not in the database and not in a cloud bucket unless you later replace `LostFoundImageStorageService`.
+
+```powershell
+$env:EASE_LOST_FOUND_UPLOAD_DIR="C:\ease-data\lost-found-images"
+# optional override in bytes (default 5242880 = 5 MB)
+$env:EASE_LOST_FOUND_MAX_FILE_SIZE_BYTES="5242880"
+```
+
+Default upload directory is `./data/lost-found-images` relative to the backend process working directory. Create it if you want a known location; the API creates it on first upload.
+
+Production still required:
+- Persistent disk (or swap the storage service for object storage)
+- `EASE_LOST_FOUND_UPLOAD_DIR` pointing at that disk
+- HTTPS and locked-down CORS origins
+- Flyway (or equivalent) instead of Hibernate `ddl-auto: update`
 
 ## API
 
@@ -52,6 +70,12 @@ The service listens on `http://localhost:8080`. Hibernate creates/updates tables
 | POST | `/api/events` | Public | Submit an event; server forces `Pending` |
 | GET | `/api/admin/events/pending` | Admin HTTP Basic | Pending review queue |
 | PATCH | `/api/admin/events/{id}/status` | Admin HTTP Basic | Approve or reject a pending event |
+| GET | `/api/lost-found` | Public | Approved Lost & Found reports only |
+| GET | `/api/lost-found/{id}/image` | Public | Photo for an approved report (404 if pending, missing, or rejected) |
+| POST | `/api/lost-found` | Public | JSON or multipart submit; always stored as `Pending` |
+| GET | `/api/admin/lost-found` | Admin HTTP Basic | Review queue, including reporter contact |
+| GET | `/api/admin/lost-found/{id}/image` | Admin HTTP Basic | Photo for any report that has one |
+| PATCH | `/api/admin/lost-found/{id}/status` | Admin HTTP Basic | Approve or reject a pending report |
 
 Optional public list filters: `?category=Workshop&dept=CSE&status=Open`. `dept` filters department and `status` filters registration status.
 

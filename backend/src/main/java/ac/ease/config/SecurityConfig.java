@@ -48,6 +48,7 @@ public class SecurityConfig {
     "/api/events",
     "/api/events/**",
     "/api/lost-found",
+    "/api/lost-found/*/image",
     "/api/health"
 ).permitAll()
 .requestMatchers(

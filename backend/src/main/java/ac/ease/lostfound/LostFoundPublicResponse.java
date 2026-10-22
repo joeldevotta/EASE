@@ -8,7 +8,8 @@ public record LostFoundPublicResponse(
     String description,
     String reportType,
     String location,
-    Instant createdAt
+    Instant createdAt,
+    boolean hasImage
 ) {
     public static LostFoundPublicResponse from(LostFoundItem item) {
         return new LostFoundPublicResponse(
@@ -17,7 +18,8 @@ public record LostFoundPublicResponse(
             item.getDescription(),
             item.getReportType(),
             item.getLocation(),
-            item.getCreatedAt()
+            item.getCreatedAt(),
+            item.hasImage()
         );
     }
 }

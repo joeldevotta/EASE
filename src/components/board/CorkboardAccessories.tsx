@@ -1,17 +1,72 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { EventItem } from '../../types/event';
+import { LostFoundPublicItem } from '../../types/lostFound';
+import { lostFoundService } from '../../services/lostFoundService';
 import { Pushpin } from '../common/Pushpin';
+import { LostItemSubmissionModal } from './LostItemSubmissionModal';
 
 interface CorkboardAccessoriesProps {
   onSelectEvent?: (event: EventItem) => void;
   onPostLostItem?: () => void;
 }
 
+function formatItemDate(isoStr: string): string {
+  if (!isoStr) return '';
+  try {
+    const d = new Date(isoStr);
+    if (isNaN(d.getTime())) return isoStr;
+    return d.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+    });
+  } catch {
+    return isoStr;
+  }
+}
+
 export const CorkboardAccessories: React.FC<CorkboardAccessoriesProps> = ({
   onPostLostItem,
 }) => {
-  const [showLostItemModal, setShowLostItemModal] = useState(false);
+  const [items, setItems] = useState<LostFoundPublicItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [showPostModal, setShowPostModal] = useState(false);
+
+  const loadLostFoundItems = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const list = await lostFoundService.getApprovedItems();
+      setItems(list);
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : 'Could not load Lost & Found items from the server.'
+      );
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadLostFoundItems();
+    const unsubscribe = lostFoundService.subscribe(() => {
+      loadLostFoundItems();
+    });
+    return () => unsubscribe();
+  }, [loadLostFoundItems]);
+
+  const handleOpenPostModal = () => {
+    if (onPostLostItem) {
+      onPostLostItem();
+    } else {
+      setShowPostModal(true);
+    }
+  };
 
   return (
     <>
@@ -116,57 +171,139 @@ export const CorkboardAccessories: React.FC<CorkboardAccessoriesProps> = ({
         </div>
 
         {/* 2. Lost & Found Corkboard Area */}
-        <div className="relative bg-surface-container-lowest/90 rounded-sm p-5 pt-7 shadow-[0_8px_20px_rgba(50,20,5,0.35)] transform lg:rotate-[1.2deg] hover:rotate-0 transition-transform border border-amber-900/10">
+        <div className="relative bg-surface-container-lowest/90 rounded-sm p-5 pt-7 shadow-[0_8px_20px_rgba(50,20,5,0.35)] transform lg:rotate-[1.2deg] hover:rotate-0 transition-transform border border-amber-900/10 flex flex-col justify-between">
           <Pushpin color="green" size="md" className="absolute -top-3 left-10 z-30" />
 
-          <div className="flex items-center justify-between pb-3 border-b border-surface-container">
-            <div className="flex items-center gap-1.5">
-              <span className="material-symbols-outlined text-secondary text-lg">
-                search_check
-              </span>
-              <h4 className="font-title-md text-base text-primary font-bold">
-                Lost & Found Cork
-              </h4>
-            </div>
-            <button
-              type="button"
-              onClick={() => {
-                if (onPostLostItem) onPostLostItem();
-                else setShowLostItemModal(true);
-              }}
-              className="font-label-sm text-xs text-secondary hover:underline font-bold"
-            >
-              + Post Item
-            </button>
-          </div>
-
-          <div className="space-y-3 mt-3">
-            {/* Sticky 1: Found Calculator */}
-            <div className="p-3 bg-amber-100/90 rounded shadow-sm transform -rotate-1 border border-amber-200">
-              <div className="flex items-center justify-between text-[10px] text-amber-900 font-bold uppercase">
-                <span>🟢 Found Item</span>
-                <span>March 15, 2:30 PM</span>
+          <div>
+            <div className="flex items-center justify-between pb-3 border-b border-surface-container">
+              <div className="flex items-center gap-1.5">
+                <span className="material-symbols-outlined text-secondary text-lg">
+                  search_check
+                </span>
+                <h4 className="font-title-md text-base text-primary font-bold">
+                  Lost & Found Cork
+                </h4>
               </div>
-              <p className="font-title-md text-xs text-amber-950 mt-1 font-bold">
-                Casio fx-991EX ClassWiz Calculator
-              </p>
-              <p className="text-[11px] text-amber-900 mt-0.5 leading-snug">
-                Found under Table 4 in ECE Analog Lab 2. Name "Rahul K." scribbled on battery lid. Handed over to Lab Asst Mr. Murugan.
-              </p>
+              <button
+                type="button"
+                onClick={handleOpenPostModal}
+                className="font-label-sm text-xs text-secondary hover:underline font-bold flex items-center gap-1"
+              >
+                <span className="material-symbols-outlined text-xs">add_circle</span>
+                <span>Post Item</span>
+              </button>
             </div>
 
-            {/* Sticky 2: Lost Charger */}
-            <div className="p-3 bg-rose-100/90 rounded shadow-sm transform rotate-1 border border-rose-200">
-              <div className="flex items-center justify-between text-[10px] text-rose-900 font-bold uppercase">
-                <span>🔴 Lost Item</span>
-                <span>March 14</span>
-              </div>
-              <p className="font-title-md text-xs text-rose-950 mt-1 font-bold">
-                Dell 65W USB-C Laptop Charger
-              </p>
-              <p className="text-[11px] text-rose-900 mt-0.5 leading-snug">
-                Left in Central Library 2nd Floor Silent Study cubicle. Has green rubber band around cable. Handed over to Desk.
-              </p>
+            <div className="space-y-3 mt-3">
+              {/* Loading State */}
+              {loading && items.length === 0 && (
+                <div className="p-5 bg-amber-50/60 rounded text-center border border-dashed border-amber-900/20 text-xs text-outline animate-pulse flex items-center justify-center gap-2">
+                  <span className="material-symbols-outlined text-sm animate-spin text-secondary">
+                    progress_activity
+                  </span>
+                  <span>Loading verified campus notices…</span>
+                </div>
+              )}
+
+              {/* Error State: Explicit failure notice, no silent fallback to mock data */}
+              {error && (
+                <div
+                  role="alert"
+                  className="p-3 bg-red-50 text-red-900 border border-red-200 rounded text-xs space-y-1.5"
+                >
+                  <div className="flex items-center gap-1.5 font-bold">
+                    <span className="material-symbols-outlined text-sm text-red-700">
+                      cloud_off
+                    </span>
+                    <span>Lost & Found Sync Issue</span>
+                  </div>
+                  <p className="text-[11px] leading-snug">{error}</p>
+                  <button
+                    type="button"
+                    onClick={loadLostFoundItems}
+                    className="mt-1 px-2 py-0.5 bg-white border border-red-300 rounded text-[10px] font-bold text-red-900 hover:bg-red-100 flex items-center gap-1"
+                  >
+                    <span className="material-symbols-outlined text-[12px]">refresh</span>
+                    <span>Retry</span>
+                  </button>
+                </div>
+              )}
+
+              {/* Empty State */}
+              {!loading && !error && items.length === 0 && (
+                <div className="p-5 bg-amber-50/50 rounded text-center border border-dashed border-amber-900/20">
+                  <span className="material-symbols-outlined text-outline text-2xl mb-1">
+                    inventory_2
+                  </span>
+                  <p className="font-title-md text-xs text-on-surface font-bold">
+                    No Lost & Found Items Reported
+                  </p>
+                  <p className="text-[11px] text-outline mt-0.5">
+                    All campus property has been claimed or resolved.
+                  </p>
+                </div>
+              )}
+
+              {/* Loaded Approved Items */}
+              {items.map((item, idx) => {
+                const isLost = item.reportType === 'LOST';
+                const rotationClass = idx % 2 === 0 ? 'transform -rotate-1' : 'transform rotate-1';
+                return (
+                  <div
+                    key={item.id}
+                    className={`p-3 rounded shadow-sm ${rotationClass} border transition-all hover:rotate-0 ${
+                      isLost
+                        ? 'bg-rose-100/95 border-rose-200 text-rose-950'
+                        : 'bg-amber-100/95 border-amber-200 text-amber-950'
+                    }`}
+                  >
+                    <div
+                      className={`flex items-center justify-between text-[10px] font-bold uppercase ${
+                        isLost ? 'text-rose-900' : 'text-amber-900'
+                      }`}
+                    >
+                      <span>{isLost ? '🔴 Lost Item' : '🟢 Found Item'}</span>
+                      {item.createdAt && <span>{formatItemDate(item.createdAt)}</span>}
+                    </div>
+
+                    {item.hasImage && item.imageUrl ? (
+                      <img
+                        src={item.imageUrl}
+                        alt={`Photo of ${item.itemName}`}
+                        className="mt-2 h-24 w-full rounded object-cover"
+                        onError={(event) => {
+                          event.currentTarget.style.display = 'none';
+                        }}
+                      />
+                    ) : null}
+
+                    <p
+                      className={`font-title-md text-xs mt-1 font-bold ${
+                        isLost ? 'text-rose-950' : 'text-amber-950'
+                      }`}
+                    >
+                      {item.itemName}
+                    </p>
+
+                    <div
+                      className={`flex items-center gap-1 text-[10px] mt-0.5 font-bold ${
+                        isLost ? 'text-rose-800' : 'text-amber-800'
+                      }`}
+                    >
+                      <span className="material-symbols-outlined text-[12px]">location_on</span>
+                      <span>{item.location}</span>
+                    </div>
+
+                    <p
+                      className={`text-[11px] mt-1 leading-snug ${
+                        isLost ? 'text-rose-900' : 'text-amber-900'
+                      }`}
+                    >
+                      {item.description}
+                    </p>
+                  </div>
+                );
+              })}
             </div>
           </div>
 
@@ -217,41 +354,13 @@ export const CorkboardAccessories: React.FC<CorkboardAccessoriesProps> = ({
         </div>
       </article>
 
-      {/* Lost item report guidance modal */}
-      {showLostItemModal && (
-        <div
-          className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
-          role="dialog"
-          aria-modal="true"
-        >
-          <div className="bg-[#FFFDF7] max-w-md w-full rounded-lg p-6 shadow-2xl border border-amber-900/10">
-            <div className="flex items-center justify-between pb-2 border-b border-surface-container">
-              <h4 className="font-headline-sm text-base text-primary font-bold">
-                Post Item to Lost & Found Cork
-              </h4>
-              <button
-                type="button"
-                onClick={() => setShowLostItemModal(false)}
-                className="text-outline hover:text-on-surface"
-              >
-                <span className="material-symbols-outlined text-sm">close</span>
-              </button>
-            </div>
-            <p className="mt-3 text-xs text-on-surface-variant font-body-sm leading-relaxed">
-              To prevent fraudulent claims, all physical lost or found possessions (ID cards, calculators, chargers, keys, wallets) must be deposited in person at <strong>Main Block Room 104 (Directorate of Student Affairs)</strong>. The desk officer verifies ownership before issuing a digital sticky note to this corkboard.
-            </p>
-            <div className="mt-4 flex justify-end">
-              <button
-                type="button"
-                onClick={() => setShowLostItemModal(false)}
-                className="bg-primary text-on-primary px-4 py-1.5 rounded text-xs font-title-md"
-              >
-                Understood
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Lost & Found Item Submission Modal */}
+      <LostItemSubmissionModal
+        isOpen={showPostModal}
+        onClose={() => setShowPostModal(false)}
+        onSuccess={() => loadLostFoundItems()}
+      />
     </>
   );
 };
+

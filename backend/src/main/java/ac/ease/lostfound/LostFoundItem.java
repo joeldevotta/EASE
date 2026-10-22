@@ -1,6 +1,8 @@
 ﻿package ac.ease.lostfound;
 
 import java.time.Instant;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -43,6 +45,20 @@ public class LostFoundItem {
 
     @Column(nullable = false)
     private Instant updatedAt;
+
+    @JsonIgnore
+    @Column(length = 80)
+    private String imageStoredName;
+
+    @Column(length = 180)
+    private String imageOriginalName;
+
+    @JsonIgnore
+    @Column(length = 40)
+    private String imageContentType;
+
+    @JsonIgnore
+    private Long imageSizeBytes;
 
     protected LostFoundItem() {
     }
@@ -133,5 +149,42 @@ public class LostFoundItem {
 
     public void setUpdatedAt(Instant updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public String getImageStoredName() {
+        return imageStoredName;
+    }
+
+    public void setImageStoredName(String imageStoredName) {
+        this.imageStoredName = imageStoredName;
+    }
+
+    public String getImageOriginalName() {
+        return imageOriginalName;
+    }
+
+    public void setImageOriginalName(String imageOriginalName) {
+        this.imageOriginalName = imageOriginalName;
+    }
+
+    public String getImageContentType() {
+        return imageContentType;
+    }
+
+    public void setImageContentType(String imageContentType) {
+        this.imageContentType = imageContentType;
+    }
+
+    public Long getImageSizeBytes() {
+        return imageSizeBytes;
+    }
+
+    public void setImageSizeBytes(Long imageSizeBytes) {
+        this.imageSizeBytes = imageSizeBytes;
+    }
+
+    @JsonProperty("hasImage")
+    public boolean hasImage() {
+        return imageStoredName != null && !imageStoredName.isBlank();
     }
 }
