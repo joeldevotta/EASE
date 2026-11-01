@@ -8,6 +8,10 @@ import {
   validateEventSubmission,
   validateStudentLogin,
   validateAdminLogin,
+  validateLostFoundSubmission,
+  validateLostFoundImage,
+  detectImageTypeFromMagicBytes,
+  LOST_FOUND_MAX_IMAGE_BYTES,
 } from '../utils/validation';
 import { authService } from '../services/authService';
 
@@ -128,7 +132,7 @@ async function runTests() {
   const initialApproved = eventService.getApprovedEvents();
   const initialCount = initialApproved.length;
 
-  const newDraft = eventService.submitEvent({
+  const newDraft = await eventService.submitEvent({
     title: 'Autonomous Drone Grand Prix',
     organizingClub: 'AeroClub EEC',
     department: 'Department of Mechanical Engineering',
@@ -455,8 +459,293 @@ async function runTests() {
 
   console.log('  ✓ Staff OD approval workflow: submit, filter by student, approve, reject, staffComment, reviewedBy, reviewedAt all verified.');
 
+  // Test 11: Lost & Found Form Validation
+  console.log('\nTest 11: Lost & Found Form Validation');
+  const emptyLf = validateLostFoundSubmission({});
+  assert.strictEqual(emptyLf.isValid, false, 'Empty Lost & Found form is rejected');
+  assert.ok(emptyLf.errors.itemName, 'Catches missing itemName');
+  assert.ok(emptyLf.errors.description, 'Catches missing description');
+  assert.ok(emptyLf.errors.reportType, 'Catches missing reportType');
+  assert.ok(emptyLf.errors.location, 'Catches missing location');
+  assert.ok(emptyLf.errors.contactName, 'Catches missing contactName');
+  assert.ok(emptyLf.errors.contactEmail, 'Catches missing contactEmail');
+
+  const invalidEmailLf = validateLostFoundSubmission({
+    itemName: 'Scientific Calculator',
+    description: 'Casio fx-991EX with black cover',
+    reportType: 'FOUND',
+    location: 'Lab 2',
+    contactName: 'Staff Member',
+    contactEmail: 'invalid-email-address',
+  });
+  assert.strictEqual(invalidEmailLf.isValid, false, 'Invalid email rejected');
+  assert.ok(invalidEmailLf.errors.contactEmail, 'Catches invalid email format');
+
+  const invalidTypeLf = validateLostFoundSubmission({
+    itemName: 'Scientific Calculator',
+    description: 'Casio fx-991EX with black cover',
+    reportType: 'UNKNOWN' as any,
+    location: 'Lab 2',
+    contactName: 'Staff Member',
+    contactEmail: 'staff@easwari.ac.in',
+  });
+  assert.strictEqual(invalidTypeLf.isValid, false, 'Invalid reportType rejected');
+  assert.ok(invalidTypeLf.errors.reportType, 'Catches non-LOST/FOUND reportType');
+
+  const validLost = validateLostFoundSubmission({
+    itemName: 'Boat Rockerz 450 Bluetooth Headphones',
+    description: 'Matte black over-ear headphones left on table in Library 2nd floor.',
+    reportType: 'LOST',
+    location: 'Central Library 2nd Floor',
+    contactName: 'Deepak V (CSE 3rd Yr)',
+    contactEmail: 'deepak.v@easwari.ac.in',
+  });
+  assert.strictEqual(validLost.isValid, true, 'Valid LOST submission accepted');
+
+  const validFound = validateLostFoundSubmission({
+    itemName: 'Easwari College ID Card',
+    description: 'ID card belonging to register number 310622104050.',
+    reportType: 'FOUND',
+    location: 'Main Gate Security Turnstile',
+    contactName: 'Security Officer Murugan',
+    contactEmail: 'security@easwari.ac.in',
+  });
+  assert.strictEqual(validFound.isValid, true, 'Valid FOUND submission accepted');
+  console.log('  ✓ Form validation correctly enforces reportType, field lengths, required fields, and email format.');
+
+  // Test 12: Lost & Found Service Lifecycle, Privacy & Backend Error Handling
+  console.log('\nTest 12: Lost & Found Service Lifecycle, Privacy & Backend Error Handling');
+  const { lostFoundService } = await import('../services/lostFoundService');
+  lostFoundService.resetToDefaultDemo();
+
+  // 1. Initial approved items
+  const initialApprovedItems = await lostFoundService.getApprovedItems();
+  assert.ok(initialApprovedItems.length >= 2, 'Initial demo Lost & Found items exist');
+
+  // 2. Privacy check: public items must NOT expose contact information
+  for (const item of initialApprovedItems) {
+    assert.strictEqual((item as any).contactName, undefined, 'Public response strips contactName');
+    assert.strictEqual((item as any).contactEmail, undefined, 'Public response strips contactEmail');
+    assert.ok(item.id, 'Has valid ID');
+    assert.ok(item.itemName, 'Has itemName');
+    assert.ok(item.location, 'Has location');
+    assert.ok(item.reportType === 'LOST' || item.reportType === 'FOUND', 'Has valid reportType');
+  }
+
+  // 3. Submit item - creates item in Pending review state
+  const initialApprovedCount = initialApprovedItems.length;
+  const submitResult = await lostFoundService.submitItem({
+    itemName: 'Titan Neo Analog Watch',
+    description: 'Silver mesh strap watch found near Mech Block water cooler.',
+    reportType: 'FOUND',
+    location: 'Mechanical Block 2nd Floor',
+    contactName: 'Suresh K (Staff)',
+    contactEmail: 'suresh.mech@easwari.ac.in',
+  });
+
+  assert.strictEqual(submitResult.success, true, 'Submission returns success');
+  assert.ok(submitResult.item.id, 'Created item has an ID');
+  assert.ok(
+    submitResult.message.includes('pending review') || submitResult.message.includes('Pending'),
+    'Returns clear pending-review message'
+  );
+  assert.ok(
+    submitResult.message.includes('Rm 104') || submitResult.message.includes('Student Affairs'),
+    'Mentions physical verification desk'
+  );
+
+  // 4. Pending item is NOT visible in public approved items list
+  const approvedAfterSubmit = await lostFoundService.getApprovedItems();
+  assert.strictEqual(
+    approvedAfterSubmit.length,
+    initialApprovedCount,
+    'Pending item is hidden from public corkboard'
+  );
+  assert.strictEqual(
+    approvedAfterSubmit.some((item) => item.id === submitResult.item.id),
+    false,
+    'Newly submitted pending item is not visible to the public'
+  );
+
+  // 5. Admin queue contains pending item
+  const pendingAdminItems = await lostFoundService.getAdminItems(undefined, 'Pending');
+  const foundPending = pendingAdminItems.find((item) => item.id === submitResult.item.id);
+  assert.ok(foundPending, 'Submitted item is visible in admin review queue');
+  assert.strictEqual(foundPending!.publicationStatus, 'Pending');
+  assert.strictEqual(foundPending!.contactName, 'Suresh K (Staff)', 'Admin queue retains contactName for verification');
+
+  // 6. Admin approves item
+  const approveSuccess = await lostFoundService.updateStatus(submitResult.item.id, 'Approved');
+  assert.strictEqual(approveSuccess, true, 'Status update returns true');
+
+  const approvedAfterReview = await lostFoundService.getApprovedItems();
+  assert.strictEqual(
+    approvedAfterReview.length,
+    initialApprovedCount + 1,
+    'Approved item is now visible on public corkboard'
+  );
+  assert.ok(
+    approvedAfterReview.some((item) => item.id === submitResult.item.id),
+    'Approved item appears in public corkboard list'
+  );
+
+  // 7. Admin rejects item
+  const rejectSuccess = await lostFoundService.updateStatus(
+    submitResult.item.id,
+    'Rejected',
+    'Owner claimed watch directly at Room 104'
+  );
+  assert.strictEqual(rejectSuccess, true, 'Rejection update returns true');
+
+  const approvedAfterReject = await lostFoundService.getApprovedItems();
+  assert.strictEqual(
+    approvedAfterReject.length,
+    initialApprovedCount,
+    'Rejected item is removed from public corkboard'
+  );
+
+  // 8. Error handling when configured backend fails (Rule 8: No silent fallback to mock data)
+  const { appConfig } = await import('../config/appConfig');
+  const originalApiBaseUrl = appConfig.apiBaseUrl;
+  const originalFetch = global.fetch;
+
+  try {
+    // Simulate configured backend that fails with HTTP 500
+    appConfig.apiBaseUrl = 'http://localhost:8080/api';
+    global.fetch = (async () =>
+      new Response(JSON.stringify({ message: 'Database connection failed' }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' },
+      })) as any;
+
+    await assert.rejects(
+      async () => {
+        await lostFoundService.getApprovedItems();
+      },
+      /Database connection failed|HTTP 500/,
+      'Does not silently fall back to mock data when backend fails'
+    );
+
+    await assert.rejects(
+      async () => {
+        await lostFoundService.submitItem({
+          itemName: 'Test Item',
+          description: 'Test description long enough',
+          reportType: 'LOST',
+          location: 'Test Location',
+          contactName: 'Test Contact',
+          contactEmail: 'test@easwari.ac.in',
+        });
+      },
+      /Database connection failed|HTTP 500/,
+      'Does not produce fake success when backend submission fails'
+    );
+  } finally {
+    appConfig.apiBaseUrl = originalApiBaseUrl;
+    global.fetch = originalFetch;
+  }
+  console.log('  ✓ Lost & Found lifecycle: submission, pending hide, admin approve/reject, contact privacy, and backend error handling verified.');
+
+  // Test 13: Lost & Found Image Validation, Upload Handling & Privacy
+  console.log('\nTest 13: Lost & Found Image Validation, Upload Handling & Privacy');
+  const jpegMagic = new Uint8Array([0xff, 0xd8, 0xff, 0xe0, 0, 0, 0, 0, 0, 0, 0, 0]);
+  const pngMagic = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0, 0, 0, 0]);
+  const webpMagic = new Uint8Array([0x52, 0x49, 0x46, 0x46, 0, 0, 0, 0, 0x57, 0x45, 0x42, 0x50]);
+  const htmlBytes = new TextEncoder().encode('<html><script>alert(1)</script></html>');
+
+  assert.strictEqual(detectImageTypeFromMagicBytes(jpegMagic), 'image/jpeg');
+  assert.strictEqual(detectImageTypeFromMagicBytes(pngMagic), 'image/png');
+  assert.strictEqual(detectImageTypeFromMagicBytes(webpMagic), 'image/webp');
+  assert.strictEqual(detectImageTypeFromMagicBytes(htmlBytes), null);
+
+  assert.strictEqual(validateLostFoundImage(null).isValid, true, 'Missing image is allowed');
+  assert.strictEqual(
+    validateLostFoundImage({ name: 'watch.jpg', size: 2048, type: 'application/octet-stream', magicBytes: jpegMagic }).isValid,
+    true,
+    'JPEG accepted from magic bytes even when MIME is untrusted'
+  );
+
+  const oversized = validateLostFoundImage({
+    name: 'huge.jpg',
+    size: LOST_FOUND_MAX_IMAGE_BYTES + 1,
+    type: 'image/jpeg',
+    magicBytes: jpegMagic,
+  });
+  assert.strictEqual(oversized.isValid, false, 'Oversized image rejected');
+  assert.ok(oversized.error && oversized.error.includes('5 MB'), 'Oversized image explains the 5 MB limit');
+
+  const spoofed = validateLostFoundImage({
+    name: 'item.png',
+    size: htmlBytes.length,
+    type: 'image/png',
+    magicBytes: htmlBytes,
+  });
+  assert.strictEqual(spoofed.isValid, false, 'HTML disguised as PNG is rejected');
+
+  const executable = validateLostFoundImage({
+    name: 'payload.exe',
+    size: jpegMagic.length,
+    type: 'image/jpeg',
+    magicBytes: jpegMagic,
+  });
+  assert.strictEqual(executable.isValid, false, 'Executable extension is rejected');
+
+  lostFoundService.resetToDefaultDemo();
+  const htmlFile = new File([htmlBytes], 'item.png', { type: 'image/png' });
+  await assert.rejects(
+    async () => {
+      await lostFoundService.submitItem({
+        itemName: 'Test Item',
+        description: 'Test description long enough',
+        reportType: 'LOST',
+        location: 'Test Location',
+        contactName: 'Test Contact',
+        contactEmail: 'test@easwari.ac.in',
+      }, htmlFile);
+    },
+    /JPEG, PNG, and WebP/,
+    'Service rejects invalid image before creating a report'
+  );
+
+  const originalApiBaseUrlForImage = appConfig.apiBaseUrl;
+  const originalFetchForImage = global.fetch;
+  try {
+    appConfig.apiBaseUrl = 'http://localhost:8080/api';
+    global.fetch = (async (_url: any, init?: any) => {
+      assert.ok(init?.body instanceof FormData, 'Backend submit uses multipart FormData');
+      assert.notStrictEqual(init?.headers?.['Content-Type'], 'application/json');
+      return new Response(JSON.stringify({
+        id: 'lf-img-1',
+        itemName: 'Titan Watch',
+        description: 'Silver mesh strap',
+        reportType: 'FOUND',
+        location: 'Mech Block',
+        createdAt: new Date().toISOString(),
+        hasImage: true,
+      }), { status: 201, headers: { 'Content-Type': 'application/json' } });
+    }) as any;
+
+    const jpegFile = new File([jpegMagic], 'watch.jpg', { type: 'application/octet-stream' });
+    const uploaded = await lostFoundService.submitItem({
+      itemName: 'Titan Watch',
+      description: 'Silver mesh strap watch found near cooler.',
+      reportType: 'FOUND',
+      location: 'Mechanical Block',
+      contactName: 'Suresh K',
+      contactEmail: 'suresh.mech@easwari.ac.in',
+    }, jpegFile);
+    assert.strictEqual(uploaded.item.hasImage, true);
+    assert.ok(uploaded.item.imageUrl?.includes('/lost-found/lf-img-1/image'), 'Public image URL is a server path, not a blob URL');
+    assert.ok(!uploaded.item.imageUrl?.startsWith('blob:'), 'Does not persist browser blob URLs');
+    assert.strictEqual((uploaded.item as any).contactEmail, undefined, 'Upload response still strips contact email');
+  } finally {
+    appConfig.apiBaseUrl = originalApiBaseUrlForImage;
+    global.fetch = originalFetchForImage;
+  }
+  console.log('  ✓ Image type/size validation, spoofed files, multipart submit, and non-blob image URLs verified.');
+
   console.log('\n===========================================');
-  console.log('🎉 ALL E.A.S.E. TEST SUITES PASSED (10/10)!');
+  console.log('🎉 ALL E.A.S.E. TEST SUITES PASSED (13/13)!');
   console.log('===========================================\n');
 }
 

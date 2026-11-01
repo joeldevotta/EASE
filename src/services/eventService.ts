@@ -53,7 +53,16 @@ export const eventService = {
     filters: Partial<EventFilterState>,
     includeUnapproved = false
   ): Promise<EventItem[]> {
-    let list = includeUnapproved ? this.getAllEvents() : this.getApprovedEvents();
+    let list: EventItem[];
+    if (appConfig.apiBaseUrl && !includeUnapproved) {
+      const response = await fetch(appConfig.apiBaseUrl.replace(/\/$/, '') + '/events');
+      if (!response.ok) {
+        throw new Error('Could not load events from the backend (HTTP ' + response.status + ').');
+      }
+      list = (await response.json()) as EventItem[];
+    } else {
+      list = includeUnapproved ? this.getAllEvents() : this.getApprovedEvents();
+    }
 
     // 1. Search Query
     if (filters.searchQuery && filters.searchQuery.trim() !== '') {
@@ -130,11 +139,44 @@ export const eventService = {
     return list;
   },
 
-  submitEvent(
+  async submitEvent(
     data: Omit<EventItem, 'id' | 'createdAt' | 'updatedAt' | 'publicationStatus'>
-  ): { success: boolean; event: EventItem; message: string } {
+  ): Promise<{ success: boolean; event: EventItem; message: string }> {
+    if (appConfig.apiBaseUrl) {
+      const response = await fetch(appConfig.apiBaseUrl.replace(/\/$/, '') + '/events', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...data,
+          registrationDeadline: data.registrationDeadline || data.startDate,
+          registrationUrl: data.registrationUrl || null,
+          posterImage: data.posterImage || null,
+          publicationStatus: 'Pending',
+        }),
+      });
+
+      if (!response.ok) {
+        let detail = 'Backend returned HTTP ' + response.status + '.';
+        try {
+          const body = await response.json();
+          if (body.message) detail = body.message;
+          else if (body.detail) detail = body.detail;
+        } catch {
+          // Keep the HTTP status message when the server does not return JSON.
+        }
+        throw new Error(detail);
+      }
+
+      const created = (await response.json()) as EventItem;
+      return {
+        success: true,
+        event: created,
+        message: 'Event "' + created.title + '" submitted successfully for review. Ref #' + created.id + '.',
+      };
+    }
+
     const all = this.getAllEvents();
-    const newId = `eec-ev-${Date.now().toString().slice(-6)}`;
+    const newId = 'eec-ev-' + Date.now().toString().slice(-6);
     const nowIso = new Date().toISOString();
 
     const newEvent: EventItem = {
@@ -142,7 +184,7 @@ export const eventService = {
       id: newId,
       createdAt: nowIso,
       updatedAt: nowIso,
-      publicationStatus: 'Pending', // pending verification
+      publicationStatus: 'Pending',
       rotation: Number(((Math.random() * 2.4) - 1.2).toFixed(1)),
       pinType: (['brass', 'red', 'navy', 'green'] as const)[
         Math.floor(Math.random() * 4)
@@ -157,7 +199,7 @@ export const eventService = {
     return {
       success: true,
       event: newEvent,
-      message: `Event "${newEvent.title}" submitted successfully for Dean / COE review. Ref #${newId}.`,
+      message: 'Event "' + newEvent.title + '" submitted successfully for Dean / COE review. Ref #' + newId + '.',
     };
   },
 

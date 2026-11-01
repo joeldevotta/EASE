@@ -1,25 +1,36 @@
-import React, { useEffect } from 'react';
+import React, { Suspense, lazy, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, useLocation, Outlet } from 'react-router-dom';
 import { Header } from './components/common/Header';
 import { Footer } from './components/common/Footer';
 import { ProtectedRoute } from './components/common/ProtectedRoute';
 import { AuthProvider } from './context/AuthContext';
-import { HomePage } from './pages/HomePage';
-import { EventsPage } from './pages/EventsPage';
-import { EventDetailPage } from './pages/EventDetailPage';
-import { CalendarPage } from './pages/CalendarPage';
-import { ClubsPage } from './pages/ClubsPage';
-import { AnnouncementsPage } from './pages/AnnouncementsPage';
-import { AboutPage } from './pages/AboutPage';
-import { ContactPage } from './pages/ContactPage';
-import { EventSubmissionPage } from './pages/EventSubmissionPage';
-import { OdPortalPage } from './pages/OdPortalPage';
-import { AdminReviewPage } from './pages/AdminReviewPage';
-import { StaffOdReviewPage } from './pages/StaffOdReviewPage';
-import { LoginSelectionPage } from './pages/LoginSelectionPage';
-import { StudentLoginPage } from './pages/StudentLoginPage';
-import { AdminLoginPage } from './pages/AdminLoginPage';
-import { NotFoundPage } from './pages/NotFoundPage';
+
+// Route-level code splitting for production performance & bundle size optimization
+const HomePage = lazy(() => import('./pages/HomePage').then((m) => ({ default: m.HomePage })));
+const EventsPage = lazy(() => import('./pages/EventsPage').then((m) => ({ default: m.EventsPage })));
+const EventDetailPage = lazy(() => import('./pages/EventDetailPage').then((m) => ({ default: m.EventDetailPage })));
+const CalendarPage = lazy(() => import('./pages/CalendarPage').then((m) => ({ default: m.CalendarPage })));
+const ClubsPage = lazy(() => import('./pages/ClubsPage').then((m) => ({ default: m.ClubsPage })));
+const AnnouncementsPage = lazy(() => import('./pages/AnnouncementsPage').then((m) => ({ default: m.AnnouncementsPage })));
+const AboutPage = lazy(() => import('./pages/AboutPage').then((m) => ({ default: m.AboutPage })));
+const ContactPage = lazy(() => import('./pages/ContactPage').then((m) => ({ default: m.ContactPage })));
+const EventSubmissionPage = lazy(() => import('./pages/EventSubmissionPage').then((m) => ({ default: m.EventSubmissionPage })));
+const OdPortalPage = lazy(() => import('./pages/OdPortalPage').then((m) => ({ default: m.OdPortalPage })));
+const AdminReviewPage = lazy(() => import('./pages/AdminReviewPage').then((m) => ({ default: m.AdminReviewPage })));
+const StaffOdReviewPage = lazy(() => import('./pages/StaffOdReviewPage').then((m) => ({ default: m.StaffOdReviewPage })));
+const LoginSelectionPage = lazy(() => import('./pages/LoginSelectionPage').then((m) => ({ default: m.LoginSelectionPage })));
+const StudentLoginPage = lazy(() => import('./pages/StudentLoginPage').then((m) => ({ default: m.StudentLoginPage })));
+const AdminLoginPage = lazy(() => import('./pages/AdminLoginPage').then((m) => ({ default: m.AdminLoginPage })));
+const NotFoundPage = lazy(() => import('./pages/NotFoundPage').then((m) => ({ default: m.NotFoundPage })));
+
+const PageLoadingFallback: React.FC = () => (
+  <div className="flex min-h-[50vh] items-center justify-center p-8">
+    <div className="flex items-center gap-2 rounded bg-surface-container-low px-4 py-3 text-xs text-primary shadow-sm border border-amber-900/10">
+      <span className="material-symbols-outlined animate-spin text-secondary text-base">progress_activity</span>
+      <span className="font-title-md font-bold">Loading campus bulletin…</span>
+    </div>
+  </div>
+);
 
 // Scroll to top automatically when navigating between pages
 const ScrollToTop: React.FC = () => {
@@ -36,7 +47,9 @@ const MainLayout: React.FC = () => {
     <div className="min-h-screen flex flex-col bg-surface font-body-md text-on-surface antialiased">
       <Header />
       <main className="flex-1 pt-24 sm:pt-28">
-        <Outlet />
+        <Suspense fallback={<PageLoadingFallback />}>
+          <Outlet />
+        </Suspense>
       </main>
       <Footer />
     </div>
@@ -48,11 +61,12 @@ export const App: React.FC = () => {
     <BrowserRouter>
       <AuthProvider>
         <ScrollToTop />
-        <Routes>
-          {/* Public Authentication Gateways - Only the clean login interface (No navbar, no search bar, no footer stats) */}
-          <Route path="/login" element={<LoginSelectionPage />} />
-          <Route path="/login/student" element={<StudentLoginPage />} />
-          <Route path="/login/admin" element={<AdminLoginPage />} />
+        <Suspense fallback={<PageLoadingFallback />}>
+          <Routes>
+            {/* Public Authentication Gateways - Only the clean login interface (No navbar, no search bar, no footer stats) */}
+            <Route path="/login" element={<LoginSelectionPage />} />
+            <Route path="/login/student" element={<StudentLoginPage />} />
+            <Route path="/login/admin" element={<AdminLoginPage />} />
 
           {/* Protected Internal Routes - Wrapped in MainLayout with Navbar & Footer */}
           <Route
@@ -121,8 +135,9 @@ export const App: React.FC = () => {
             <Route path="*" element={<NotFoundPage />} />
           </Route>
         </Routes>
-      </AuthProvider>
-    </BrowserRouter>
+      </Suspense>
+    </AuthProvider>
+  </BrowserRouter>
   );
 };
 

@@ -68,7 +68,7 @@ export const EventSubmissionForm: React.FC<EventSubmissionFormProps> = ({
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
 
@@ -80,7 +80,7 @@ export const EventSubmissionForm: React.FC<EventSubmissionFormProps> = ({
     }
 
     try {
-      const result = eventService.submitEvent({
+      const result = await eventService.submitEvent({
         title: formData.title.trim(),
         category: formData.category,
         department: formData.department,
@@ -94,7 +94,7 @@ export const EventSubmissionForm: React.FC<EventSubmissionFormProps> = ({
         facultyCoordinatorEmpId: formData.facultyCoordinatorEmpId.trim(),
         coordinatorContact: formData.coordinatorContact.trim(),
         eligibility: formData.eligibility.trim(),
-        registrationDeadline: formData.registrationDeadline,
+        registrationDeadline: formData.registrationDeadline || formData.startDate,
         registrationUrl: formData.registrationUrl.trim(),
         registrationStatus: formData.registrationStatus,
         description: formData.description.trim(),
@@ -106,7 +106,7 @@ export const EventSubmissionForm: React.FC<EventSubmissionFormProps> = ({
       if (onSuccess) onSuccess(result.event);
     } catch (err) {
       console.error('Submission failed:', err);
-      setErrors({ form: 'An unexpected error occurred while saving locally.' });
+      setErrors({ form: err instanceof Error ? err.message : 'An unexpected error occurred while submitting the event.' });
     } finally {
       setIsSubmitting(false);
     }
