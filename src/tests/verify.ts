@@ -83,7 +83,7 @@ async function runTests() {
 
   // Test 3: Form & URL Validation Rules
   console.log('\nTest 3: Form & URL Validation Rules');
-  assert.strictEqual(isValidHttpUrl('https://easwari.ac.in'), true);
+  assert.strictEqual(isValidHttpUrl('https://eec.srmrmp.edu.in'), true);
   assert.strictEqual(isValidHttpUrl('http://localhost:5173'), true);
   assert.strictEqual(isValidHttpUrl('ftp://invalid'), false);
   assert.strictEqual(isValidHttpUrl('not-a-url'), false);
@@ -217,7 +217,7 @@ async function runTests() {
   const validStudentByRegNo = validateStudentLogin('310621104001', 'pass1234');
   assert.strictEqual(validStudentByRegNo.isValid, true, 'Valid student register number accepted');
 
-  const validStudentByEmail = validateStudentLogin('student@easwari.ac.in', 'pass1234');
+  const validStudentByEmail = validateStudentLogin('student@eec.srmrmp.edu.in', 'pass1234');
   assert.strictEqual(validStudentByEmail.isValid, true, 'Valid student email accepted');
 
   // Admin Login validation tests
@@ -233,7 +233,7 @@ async function runTests() {
   const validAdminByEmpId = validateAdminLogin('EEC-FAC-1042', 'adminSecret');
   assert.strictEqual(validAdminByEmpId.isValid, true, 'Valid admin employee ID accepted');
 
-  const validAdminByEmail = validateAdminLogin('faculty@easwari.ac.in', 'adminSecret');
+  const validAdminByEmail = validateAdminLogin('faculty@eec.srmrmp.edu.in', 'adminSecret');
   assert.strictEqual(validAdminByEmail.isValid, true, 'Valid admin email accepted');
   console.log('  ✓ Student and Admin login validations correctly enforce rules and error handling.');
 
@@ -487,7 +487,7 @@ async function runTests() {
     reportType: 'UNKNOWN' as any,
     location: 'Lab 2',
     contactName: 'Staff Member',
-    contactEmail: 'staff@easwari.ac.in',
+    contactEmail: 'staff@eec.srmrmp.edu.in',
   });
   assert.strictEqual(invalidTypeLf.isValid, false, 'Invalid reportType rejected');
   assert.ok(invalidTypeLf.errors.reportType, 'Catches non-LOST/FOUND reportType');
@@ -498,7 +498,7 @@ async function runTests() {
     reportType: 'LOST',
     location: 'Central Library 2nd Floor',
     contactName: 'Deepak V (CSE 3rd Yr)',
-    contactEmail: 'deepak.v@easwari.ac.in',
+    contactEmail: 'deepak.v@eec.srmrmp.edu.in',
   });
   assert.strictEqual(validLost.isValid, true, 'Valid LOST submission accepted');
 
@@ -508,7 +508,7 @@ async function runTests() {
     reportType: 'FOUND',
     location: 'Main Gate Security Turnstile',
     contactName: 'Security Officer Murugan',
-    contactEmail: 'security@easwari.ac.in',
+    contactEmail: 'security@eec.srmrmp.edu.in',
   });
   assert.strictEqual(validFound.isValid, true, 'Valid FOUND submission accepted');
   console.log('  ✓ Form validation correctly enforces reportType, field lengths, required fields, and email format.');
@@ -540,7 +540,7 @@ async function runTests() {
     reportType: 'FOUND',
     location: 'Mechanical Block 2nd Floor',
     contactName: 'Suresh K (Staff)',
-    contactEmail: 'suresh.mech@easwari.ac.in',
+    contactEmail: 'suresh.mech@eec.srmrmp.edu.in',
   });
 
   assert.strictEqual(submitResult.success, true, 'Submission returns success');
@@ -634,7 +634,7 @@ async function runTests() {
           reportType: 'LOST',
           location: 'Test Location',
           contactName: 'Test Contact',
-          contactEmail: 'test@easwari.ac.in',
+          contactEmail: 'test@eec.srmrmp.edu.in',
         });
       },
       /Database connection failed|HTTP 500/,
@@ -700,7 +700,7 @@ async function runTests() {
         reportType: 'LOST',
         location: 'Test Location',
         contactName: 'Test Contact',
-        contactEmail: 'test@easwari.ac.in',
+        contactEmail: 'test@eec.srmrmp.edu.in',
       }, htmlFile);
     },
     /JPEG, PNG, and WebP/,
@@ -732,7 +732,7 @@ async function runTests() {
       reportType: 'FOUND',
       location: 'Mechanical Block',
       contactName: 'Suresh K',
-      contactEmail: 'suresh.mech@easwari.ac.in',
+      contactEmail: 'suresh.mech@eec.srmrmp.edu.in',
     }, jpegFile);
     assert.strictEqual(uploaded.item.hasImage, true);
     assert.ok(uploaded.item.imageUrl?.includes('/lost-found/lf-img-1/image'), 'Public image URL is a server path, not a blob URL');

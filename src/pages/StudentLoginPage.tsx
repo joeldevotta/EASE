@@ -181,7 +181,7 @@ export const StudentLoginPage: React.FC = () => {
                       if (errors.identifier) setErrors((prev) => ({ ...prev, identifier: undefined }));
                       if (authError) setAuthError(null);
                     }}
-                    placeholder="e.g., 310621104001 or student@easwari.ac.in"
+                    placeholder="e.g., 310621104001 or student@eec.srmrmp.edu.in"
                     className="w-full bg-transparent px-2 py-2.5 text-body-sm text-on-surface focus:outline-none"
                     autoComplete="username"
                   />
