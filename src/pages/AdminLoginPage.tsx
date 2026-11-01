@@ -190,7 +190,7 @@ export const AdminLoginPage: React.FC = () => {
                       if (errors.identifier) setErrors((prev) => ({ ...prev, identifier: undefined }));
                       if (authError) setAuthError(null);
                     }}
-                    placeholder="e.g., EEC-FAC-1042 or faculty@easwari.ac.in"
+                    placeholder="e.g., EEC-FAC-1042 or faculty@eec.srmrmp.edu.in"
                     className="w-full bg-transparent px-2 py-2.5 text-body-sm text-on-surface focus:outline-none"
                     autoComplete="username"
                   />
@@ -394,7 +394,7 @@ export const AdminLoginPage: React.FC = () => {
               <div className="p-3 bg-amber-50 rounded border border-amber-200 text-amber-950">
                 <span className="font-bold block text-amber-900">Assistance Contacts:</span>
                 <ul className="list-disc pl-4 mt-1 space-y-1 text-[11px]">
-                  <li>Email Campus IT Administrator: <code>admin.support@easwari.ac.in</code></li>
+                  <li>Contact your authorized college IT administrator for account access.</li>
                   <li>Campus Internal Phone Extension: <strong>204</strong> (Office of Dean of Student Affairs)</li>
                   <li>Physical Helpdesk: Central IT Centre, Library Block 2nd Floor</li>
                 </ul>
