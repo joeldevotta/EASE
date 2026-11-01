@@ -107,8 +107,8 @@ export function validateStudentLogin(
   if (!clean) {
     errors.identifier = 'Please enter your Student Register Number or College Email.';
   } else if (clean.includes('@')) {
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(clean)) {
-      errors.identifier = 'Please enter a valid college email address (e.g., student@easwari.ac.in).';
+    if (!/^[^\s@]+@eec\.srmrmp\.edu\.in$/i.test(clean)) {
+      errors.identifier = 'Use your college email ending in @eec.srmrmp.edu.in.';
     }
   } else if (clean.length < 6) {
     errors.identifier = 'Register Number must be at least 6 alphanumeric characters.';
@@ -136,8 +136,8 @@ export function validateAdminLogin(
   if (!clean) {
     errors.identifier = 'Please enter your Admin Email or Employee ID.';
   } else if (clean.includes('@')) {
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(clean)) {
-      errors.identifier = 'Please enter a valid official email address.';
+    if (!/^[^\s@]+@eec\.srmrmp\.edu\.in$/i.test(clean)) {
+      errors.identifier = 'Use your official college email ending in @eec.srmrmp.edu.in.';
     }
   } else if (clean.length < 5) {
     errors.identifier = 'Employee ID must be at least 5 characters (e.g., EEC-FAC-1042).';
