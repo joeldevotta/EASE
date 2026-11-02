@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { NavLink, Link, useNavigate } from 'react-router-dom';
 import { appConfig } from '../../config/appConfig';
 import { useAuth } from '../../context/AuthContext';
@@ -10,6 +10,11 @@ interface HeaderProps {
 
 export const Header: React.FC<HeaderProps> = ({ onSearch, searchQuery = '' }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [darkMode, setDarkMode] = useState(() => typeof window !== 'undefined' && window.localStorage.getItem('ease-theme') === 'dark');
+  useEffect(() => {
+    document.documentElement.classList.toggle('dark-mode', darkMode);
+    window.localStorage.setItem('ease-theme', darkMode ? 'dark' : 'light');
+  }, [darkMode]);
   const [localSearch, setLocalSearch] = useState(searchQuery);
   const navigate = useNavigate();
   const { user, isAuthenticated, logout } = useAuth();
@@ -81,11 +86,9 @@ export const Header: React.FC<HeaderProps> = ({ onSearch, searchQuery = '' }) =>
       {/* 2. Main Institutional Identity & Search Bar */}
       <div className="h-16 sm:h-20 w-full px-3 sm:px-gutter flex items-center justify-between gap-3 sm:gap-gutter bg-surface-container-low border-b border-surface-container">
         <Link to="/" className="brand-lockup flex items-center gap-2 sm:gap-space-md shrink-0 group focus-visible:outline-offset-4">
-          <img
-            alt="Easwari Engineering College Emblem"
-            className="brand-emblem h-10 sm:h-12 w-auto object-contain"
-            src={appConfig.emblemUrl}
-          />
+          <span className="flex h-10 w-10 sm:h-12 sm:w-12 shrink-0 items-center justify-center overflow-hidden rounded-full border border-primary/15 bg-white shadow-sm">
+            <img alt="Easwari Engineering College Emblem" className="brand-emblem h-full w-full rounded-full object-contain p-1" src={appConfig.emblemUrl} />
+          </span>
           <div className="w-[1px] h-7 sm:h-8 bg-outline-variant/60 mx-0.5 sm:mx-1" />
           <div className="flex flex-col">
             <span className="font-headline-sm text-lg sm:text-headline-sm tracking-tight text-primary leading-none font-serif font-bold">
@@ -236,6 +239,10 @@ export const Header: React.FC<HeaderProps> = ({ onSearch, searchQuery = '' }) =>
               <span>Sign In</span>
             </Link>
           )}
+
+          <button type="button" onClick={() => setDarkMode((current) => !current)} className="theme-toggle flex h-9 w-9 items-center justify-center rounded-full border border-outline-variant/60 bg-surface-container text-on-surface shadow-sm" aria-label={darkMode ? 'Switch to light mode' : 'Switch to dark mode'} title={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}>
+            <span className="material-symbols-outlined text-lg">{darkMode ? 'light_mode' : 'dark_mode'}</span>
+          </button>
 
           {/* Mobile Menu Button */}
           <button
