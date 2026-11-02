@@ -87,7 +87,7 @@ export const Header: React.FC<HeaderProps> = ({ onSearch, searchQuery = '' }) =>
       <div className="h-16 sm:h-20 w-full px-3 sm:px-gutter flex items-center justify-between gap-3 sm:gap-gutter bg-surface-container-low border-b border-surface-container">
         <Link to="/" className="brand-lockup flex items-center gap-2 sm:gap-space-md shrink-0 group focus-visible:outline-offset-4">
           <span className="flex h-10 w-10 sm:h-12 sm:w-12 shrink-0 items-center justify-center overflow-hidden rounded-full border border-primary/15 bg-white shadow-sm">
-            <img alt="Easwari Engineering College Emblem" className="brand-emblem h-full w-full rounded-full object-contain p-1" src={appConfig.emblemUrl} />
+            <img alt="Easwari Engineering College Emblem" className="brand-emblem h-full w-full rounded-full object-cover" src={appConfig.emblemUrl} />
           </span>
           <div className="w-[1px] h-7 sm:h-8 bg-outline-variant/60 mx-0.5 sm:mx-1" />
           <div className="flex flex-col">
