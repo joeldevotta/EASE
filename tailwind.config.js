@@ -73,20 +73,20 @@ export default {
         "gutter-mobile": "0.75rem"
       },
       fontFamily: {
-        serif: ["Playfair Display", "Georgia", "serif"],
-        sans: ["Plus Jakarta Sans", "system-ui", "sans-serif"],
-        "title-lg": ["Plus Jakarta Sans", "sans-serif"],
-        "body-sm": ["Plus Jakarta Sans", "sans-serif"],
-        "display-lg": ["Playfair Display", "serif"],
-        "label-sm": ["Plus Jakarta Sans", "sans-serif"],
-        "body-md": ["Plus Jakarta Sans", "sans-serif"],
-        "body-lg": ["Plus Jakarta Sans", "sans-serif"],
-        "headline-lg": ["Playfair Display", "serif"],
-        "title-md": ["Plus Jakarta Sans", "sans-serif"],
-        "label-md": ["Plus Jakarta Sans", "sans-serif"],
-        "display-lg-mobile": ["Playfair Display", "serif"],
-        "headline-md": ["Playfair Display", "serif"],
-        "headline-sm": ["Playfair Display", "serif"]
+        serif: ["Space Grotesk", "Georgia", "serif"],
+        sans: ["Manrope", "system-ui", "sans-serif"],
+        "title-lg": ["Manrope", "sans-serif"],
+        "body-sm": ["Manrope", "sans-serif"],
+        "display-lg": ["Space Grotesk", "serif"],
+        "label-sm": ["Manrope", "sans-serif"],
+        "body-md": ["Manrope", "sans-serif"],
+        "body-lg": ["Manrope", "sans-serif"],
+        "headline-lg": ["Space Grotesk", "serif"],
+        "title-md": ["Manrope", "sans-serif"],
+        "label-md": ["Manrope", "sans-serif"],
+        "display-lg-mobile": ["Space Grotesk", "serif"],
+        "headline-md": ["Space Grotesk", "serif"],
+        "headline-sm": ["Space Grotesk", "serif"]
       }
     }
   },
