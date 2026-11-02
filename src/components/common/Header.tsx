@@ -53,7 +53,7 @@ export const Header: React.FC<HeaderProps> = ({ onSearch, searchQuery = '' }) =>
   });
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-surface shadow-[0_4px_20px_rgba(92,56,32,0.08)]">
+    <header className="fixed top-0 left-0 right-0 z-50 bg-surface/95 backdrop-blur-xl shadow-[0_4px_20px_rgba(28,53,81,0.08)] border-b border-amber-900/10">
       {/* 1. Urgent Dispatch Notification Marquee */}
       <div className="bg-primary text-on-primary px-3 sm:px-gutter py-1">
         <div className="w-full flex items-center justify-between gap-gutter">
@@ -80,10 +80,10 @@ export const Header: React.FC<HeaderProps> = ({ onSearch, searchQuery = '' }) =>
 
       {/* 2. Main Institutional Identity & Search Bar */}
       <div className="h-16 sm:h-20 w-full px-3 sm:px-gutter flex items-center justify-between gap-3 sm:gap-gutter bg-surface-container-low border-b border-surface-container">
-        <Link to="/" className="flex items-center gap-2 sm:gap-space-md shrink-0 group">
+        <Link to="/" className="brand-lockup flex items-center gap-2 sm:gap-space-md shrink-0 group focus-visible:outline-offset-4">
           <img
             alt="Easwari Engineering College Emblem"
-            className="h-10 sm:h-12 w-auto object-contain transition-transform group-hover:scale-105"
+            className="brand-emblem h-10 sm:h-12 w-auto object-contain"
             src={appConfig.emblemUrl}
           />
           <div className="w-[1px] h-7 sm:h-8 bg-outline-variant/60 mx-0.5 sm:mx-1" />
