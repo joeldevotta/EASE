@@ -4,8 +4,7 @@ export const appConfig = {
   tagline: 'Your Campus. Your Events. All in One Place.',
   collegeName: 'Easwari Engineering College (Autonomous)',
   affiliation: 'Affiliated to Anna University, Chennai • Approved by AICTE, New Delhi',
-  emblemUrl:
-    'https://lh3.googleusercontent.com/aida-public/AB6AXuCINnyFztwzs9YztrnFlEIgesi6Fuf2dOTTJRRep9_cPnsU1k4OTf7PRhWJ9b2UJLMTMzdul_ntsK_5Id_PC5AdnTs8vRn1kD6rfKkCZaIzNSa3_HF0FXSTQXshNN_SCScsMzZXoDWn6ZpXHdY_NvYSQDYBtD91q76DLJyfzKHTNXO_bygQknjsOjJEtnKqt32ovHLzWlCUzVdRtSEU4oSm82kpkUir0Hh6vD8SzJYYdY-7IiPy38IqBk1wa7Le8sh2IA',
+  emblemUrl: '/college-logo.png',
   
   // Service endpoints (environment-configurable for future Spring Boot backend)
   apiBaseUrl: (typeof import.meta !== 'undefined' && import.meta.env?.VITE_API_BASE_URL) || '',
