@@ -132,6 +132,22 @@ export const BackendAdminReview: React.FC = () => {
     }
   };
 
+  const removeFoundItem = async (item: LostFoundAdminItem) => {
+    if (item.reportType !== 'FOUND' || item.publicationStatus !== 'Approved') return;
+    if (!window.confirm(`Remove "${item.itemName}" from the public Lost & Found corkboard? This permanently deletes the report and its uploaded image.`)) return;
+
+    setBusyId(item.id);
+    setError(null);
+    try {
+      await request('/admin/lost-found/' + encodeURIComponent(item.id), { method: 'DELETE' });
+      setNotification(`Found item "${item.itemName}" removed from the public corkboard.`);
+      await loadLostFound(activeTab);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not remove the found item.');
+    } finally {
+      setBusyId(null);
+    }
+  };
   const handleReview = (id: string, status: Extract<PublicationStatus, 'Approved' | 'Rejected'>, reason?: string) => {
     if (queueMode === 'events') {
       return reviewEvent(id, status, reason);
@@ -397,6 +413,17 @@ export const BackendAdminReview: React.FC = () => {
                                 {item.publicationStatus}
                               </span>
 
+                              {item.reportType === 'FOUND' && item.publicationStatus === 'Approved' && (
+                                <button
+                                  type="button"
+                                  disabled={busyId === item.id}
+                                  onClick={() => void removeFoundItem(item)}
+                                  className="px-3 py-2 rounded bg-rose-700 text-white text-xs font-bold disabled:opacity-50 hover:bg-rose-800 transition-colors flex items-center gap-1"
+                                >
+                                  <span className="material-symbols-outlined text-xs">delete</span>
+                                  <span>{busyId === item.id ? 'Removing…' : 'Remove claimed found item'}</span>
+                                </button>
+                              )}
                               {item.publicationStatus === 'Pending' && (
                                 <div className="flex flex-wrap gap-2">
                                   <button
