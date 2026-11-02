@@ -27,3 +27,109 @@
   backface-visibility: hidden;
   will-change: transform, box-shadow;
 }
+
+/* Premium motion system: quick, restrained transitions that keep the corkboard tactile. */
+:root {
+  --ease-premium: cubic-bezier(0.2, 0.75, 0.25, 1);
+  --motion-fast: 160ms;
+  --motion-medium: 240ms;
+  --shadow-card-rest: 0 5px 14px rgba(50, 28, 12, 0.08);
+  --shadow-card-hover: 0 14px 30px rgba(50, 28, 12, 0.14);
+}
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 7rem;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+::selection {
+  background: rgba(212, 164, 75, 0.28);
+  color: #1c3551;
+}
+
+:where(a, button, input, select, textarea) {
+  -webkit-tap-highlight-color: transparent;
+}
+
+:where(a, button, input, select, textarea):focus-visible {
+  outline: 3px solid rgba(168, 55, 47, 0.72);
+  outline-offset: 3px;
+}
+
+button:not(:disabled) {
+  transition:
+    transform var(--motion-fast) var(--ease-premium),
+    box-shadow var(--motion-medium) var(--ease-premium),
+    background-color var(--motion-fast) ease,
+    border-color var(--motion-fast) ease,
+    color var(--motion-fast) ease;
+}
+
+button:not(:disabled):active {
+  transform: translateY(1px) scale(0.99);
+}
+
+a {
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.18em;
+}
+
+.brand-lockup {
+  border-radius: 0.75rem;
+  transition: opacity var(--motion-fast) ease, transform var(--motion-medium) var(--ease-premium);
+}
+
+.brand-lockup:hover {
+  opacity: 0.96;
+}
+
+.brand-emblem {
+  transform-origin: center;
+  filter: drop-shadow(0 1px 0 rgba(28, 53, 81, 0.04));
+  transition:
+    transform 320ms var(--ease-premium),
+    filter 320ms var(--ease-premium);
+}
+
+.brand-lockup:hover .brand-emblem {
+  transform: translateY(-1px) scale(1.045);
+  filter: drop-shadow(0 4px 5px rgba(28, 53, 81, 0.16));
+}
+
+.notice-card {
+  transition:
+    transform 260ms var(--ease-premium),
+    box-shadow 260ms var(--ease-premium),
+    border-color 180ms ease;
+}
+
+.notice-card:hover {
+  box-shadow: var(--shadow-card-hover);
+  border-color: rgba(168, 55, 47, 0.18);
+}
+
+:where(img, svg) {
+  image-rendering: auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}
