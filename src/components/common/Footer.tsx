@@ -101,10 +101,10 @@ export const Footer: React.FC<FooterProps> = ({
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-gutter mb-8">
           {/* Col 1 */}
           <div className="flex flex-col gap-space-sm">
-            <div className="flex items-center gap-space-sm">
+            <div className="brand-group flex items-center gap-space-sm">
               <img
                 alt="Easwari Engineering College Logo"
-                className="h-10 w-auto object-contain"
+                className="brand-emblem h-10 w-auto object-contain"
                 src={appConfig.emblemUrl}
               />
               <div className="flex flex-col pl-1">
