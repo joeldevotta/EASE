@@ -98,7 +98,8 @@ a {
     filter 320ms var(--ease-premium);
 }
 
-.brand-lockup:hover .brand-emblem {
+.brand-lockup:hover .brand-emblem,
+.brand-group:hover .brand-emblem {
   transform: translateY(-1px) scale(1.045);
   filter: drop-shadow(0 4px 5px rgba(28, 53, 81, 0.16));
 }
