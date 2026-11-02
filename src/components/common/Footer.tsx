@@ -103,7 +103,7 @@ export const Footer: React.FC<FooterProps> = ({
           <div className="flex flex-col gap-space-sm">
             <div className="brand-group flex items-center gap-space-sm">
               <span className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full border border-primary/15 bg-white shadow-sm">
-                <img alt="Easwari Engineering College Logo" className="brand-emblem h-full w-full rounded-full object-contain p-1" src={appConfig.emblemUrl} />
+                <img alt="Easwari Engineering College Logo" className="brand-emblem h-full w-full rounded-full object-cover" src={appConfig.emblemUrl} />
               </span>
               <div className="flex flex-col pl-1">
                 <span className="font-headline-sm text-base text-primary leading-tight font-serif font-bold">

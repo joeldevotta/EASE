@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useLayoutEffect, useRef, useState } from 'react';
 import { Pushpin } from '../common/Pushpin';
 
 interface CorkboardProps {
@@ -29,6 +29,19 @@ export const Corkboard: React.FC<CorkboardProps> = ({
   onQuickPinClick,
   urgentCount = 8,
 }) => {
+  const tabsRef = useRef<HTMLDivElement>(null);
+  const tabRefs = useRef<Record<string, HTMLButtonElement | null>>({});
+  const [indicator, setIndicator] = useState({ left: 0, width: 0, visible: false });
+  useLayoutEffect(() => {
+    const updateIndicator = () => {
+      const activeTab = tabRefs.current[activeFilter];
+      if (!tabsRef.current || !activeTab) return;
+      setIndicator({ left: activeTab.offsetLeft, width: activeTab.offsetWidth, visible: true });
+    };
+    updateIndicator();
+    window.addEventListener('resize', updateIndicator);
+    return () => window.removeEventListener('resize', updateIndicator);
+  }, [activeFilter, categoriesWithCounts]);
   return (
     <div className="relative w-full overflow-hidden bg-[#84532B] p-2 sm:p-4 lg:p-6 shadow-[inset_0_12px_30px_rgba(0,0,0,0.55)]">
       {/* Outer Simulated Deep Oak Wood Bevel Frame */}
@@ -83,25 +96,25 @@ export const Corkboard: React.FC<CorkboardProps> = ({
                 {/* Center: Physical Index Sticky Tabs */}
                 {onFilterChange && (
                   <div
-                    className="flex items-center gap-1 sm:gap-1.5 overflow-x-auto py-1 scrollbar-none"
+                    className="relative flex items-center gap-1 sm:gap-1.5 overflow-x-auto py-1 scrollbar-none"
                     id="filter-tabs"
+                    ref={tabsRef}
                   >
+                    {indicator.visible && <span aria-hidden="true" className="cork-tab-indicator" style={{ transform: 'translateX(' + indicator.left + 'px)', width: indicator.width }} />}
                     {categoriesWithCounts.map((tab) => {
                       const isActive = activeFilter.toLowerCase() === tab.key.toLowerCase();
                       return (
                         <button
+                          ref={(node) => { tabRefs.current[tab.key] = node; }}
                           key={tab.key}
                           type="button"
                           onClick={() => onFilterChange(tab.key)}
                           className={`filter-btn group relative px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-t font-title-md text-xs sm:text-body-sm shadow-sm flex items-center gap-1.5 transition-all whitespace-nowrap ${
                             isActive
-                              ? 'bg-primary text-on-primary -translate-y-1 shadow-[0_-2px_6px_rgba(0,0,0,0.15)] font-bold'
-                              : 'bg-surface-container-high hover:bg-surface-variant text-on-surface'
+                              ? 'bg-transparent text-white -translate-y-1 font-bold z-10'
+                              : 'bg-surface-container-high hover:bg-surface-variant text-on-surface z-10'
                           }`}
                         >
-                          {isActive && (
-                            <span className="w-2 h-2 rounded-full bg-amber-400 shadow-sm" />
-                          )}
                           <span>
                             {tab.label} ({tab.count})
                           </span>
