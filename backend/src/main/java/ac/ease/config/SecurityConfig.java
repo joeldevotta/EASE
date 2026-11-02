@@ -67,7 +67,7 @@ public class SecurityConfig {
             @Value("${ease.cors.allowed-origins}") String allowedOrigins) {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowedOrigins(Arrays.stream(allowedOrigins.split(",")).map(String::trim).toList());
-        config.setAllowedMethods(Arrays.asList("GET", "POST", "PATCH", "OPTIONS"));
+        config.setAllowedMethods(Arrays.asList("GET", "POST", "PATCH", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "Accept"));
         config.setAllowCredentials(false);
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
