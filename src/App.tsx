@@ -46,7 +46,7 @@ const MainLayout: React.FC = () => {
   return (
     <div className="min-h-screen flex flex-col bg-surface font-body-md text-on-surface antialiased">
       <Header />
-      <main className="flex-1 pt-24 sm:pt-28">
+      <main className="flex-1 pt-24 sm:pt-28 page-enter">
         <Suspense fallback={<PageLoadingFallback />}>
           <Outlet />
         </Suspense>
