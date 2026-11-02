@@ -34,6 +34,16 @@ export const CorkboardAccessories: React.FC<CorkboardAccessoriesProps> = ({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showPostModal, setShowPostModal] = useState(false);
+  const [expandedItemIds, setExpandedItemIds] = useState<Set<string>>(new Set());
+
+  const toggleItemExpanded = (id: string) => {
+    setExpandedItemIds((current) => {
+      const next = new Set(current);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
 
   const loadLostFoundItems = useCallback(async () => {
     setLoading(true);
@@ -247,6 +257,7 @@ export const CorkboardAccessories: React.FC<CorkboardAccessoriesProps> = ({
               {/* Loaded Approved Items */}
               {items.map((item, idx) => {
                 const isLost = item.reportType === 'LOST';
+                const isExpanded = expandedItemIds.has(item.id);
                 const rotationClass = idx % 2 === 0 ? 'transform -rotate-1' : 'transform rotate-1';
                 return (
                   <div
@@ -270,7 +281,7 @@ export const CorkboardAccessories: React.FC<CorkboardAccessoriesProps> = ({
                       <img
                         src={item.imageUrl}
                         alt={`Photo of ${item.itemName}`}
-                        className="mt-2 h-24 w-full rounded object-cover"
+                        className={`mt-2 w-full rounded bg-white/60 ${isExpanded ? 'max-h-72 object-contain' : 'h-24 object-cover'}`}
                         onError={(event) => {
                           event.currentTarget.style.display = 'none';
                         }}
@@ -299,8 +310,17 @@ export const CorkboardAccessories: React.FC<CorkboardAccessoriesProps> = ({
                         isLost ? 'text-rose-900' : 'text-amber-900'
                       }`}
                     >
-                      {item.description}
+                      {isExpanded ? item.description : `${item.description.slice(0, 110)}${item.description.length > 110 ? '…' : ''}`}
                     </p>
+                    <button
+                      type="button"
+                      onClick={() => toggleItemExpanded(item.id)}
+                      aria-expanded={isExpanded}
+                      className={`mt-2 inline-flex items-center gap-1 text-[11px] font-bold underline underline-offset-2 ${isLost ? 'text-rose-900' : 'text-amber-900'}`}
+                    >
+                      <span className="material-symbols-outlined text-[14px]">{isExpanded ? 'expand_less' : 'expand_more'}</span>
+                      <span>{isExpanded ? 'Show less' : 'View full item'}</span>
+                    </button>
                   </div>
                 );
               })}

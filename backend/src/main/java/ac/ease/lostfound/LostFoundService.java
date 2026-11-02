@@ -137,6 +137,25 @@ public class LostFoundService {
         return repository.save(report);
     }
 
+    @Transactional
+    public void removeResolvedFoundItem(String id) {
+        LostFoundItem report = repository.findById(id)
+            .orElseThrow(() -> new ResponseStatusException(
+                HttpStatus.NOT_FOUND,
+                "Lost & Found report not found"
+            ));
+
+        if (!"FOUND".equals(report.getReportType())
+                || !"Approved".equals(report.getPublicationStatus())) {
+            throw new ResponseStatusException(
+                HttpStatus.CONFLICT,
+                "Only approved found items can be removed from the public corkboard"
+            );
+        }
+
+        imageStorage.deleteQuietly(report.getImageStoredName());
+        repository.delete(report);
+    }
     @Transactional(readOnly = true)
     public ResponseEntity<Resource> publicImage(String id) {
         LostFoundItem report = repository.findById(id).orElse(null);

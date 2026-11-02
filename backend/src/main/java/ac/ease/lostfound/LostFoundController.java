@@ -52,6 +52,11 @@ public class LostFoundController {
         return service.adminReports(status);
     }
 
+    @DeleteMapping("/admin/lost-found/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void removeFoundItem(@PathVariable String id) {
+        service.removeResolvedFoundItem(id);
+    }
     @GetMapping("/admin/lost-found/{id}/image")
     public ResponseEntity<Resource> adminImage(@PathVariable String id) {
         return service.adminImage(id);
