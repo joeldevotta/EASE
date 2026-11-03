@@ -32,6 +32,9 @@ public class AdminAccountBootstrap implements ApplicationRunner {
     @Override
     @Transactional
     public void run(ApplicationArguments args) {
+        if (username.isBlank() || password.length() < 16) {
+            throw new IllegalStateException("Set EASE_ADMIN_USERNAME and an EASE_ADMIN_PASSWORD of at least 16 characters.");
+        }
         if (!repository.existsByUsernameIgnoreCase(username)) {
             repository.save(new AdminAccount(username, email, encoder.encode(password)));
         }
