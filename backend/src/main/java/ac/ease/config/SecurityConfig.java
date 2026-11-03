@@ -10,7 +10,8 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import ac.ease.admin.AdminAccountRepository;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -24,16 +25,13 @@ public class SecurityConfig {
     PasswordEncoder passwordEncoder() { return new BCryptPasswordEncoder(); }
 
     @Bean
-    UserDetailsService adminUserDetailsService(
-            @Value("${ease.admin.username}") String username,
-            @Value("${ease.admin.password}") String password,
-            PasswordEncoder encoder) {
-        if (username.isBlank() || password.length() < 16) {
-            throw new IllegalStateException("Set EASE_ADMIN_USERNAME and an EASE_ADMIN_PASSWORD of at least 16 characters.");
-        }
-        return new InMemoryUserDetailsManager(
-            User.withUsername(username).password(encoder.encode(password)).roles("ADMIN").build()
-        );
+    UserDetailsService adminUserDetailsService(AdminAccountRepository repository) {
+        return username -> repository.findByUsernameIgnoreCase(username)
+            .map(account -> User.withUsername(account.getUsername())
+                .password(account.getPasswordHash())
+                .roles("ADMIN")
+                .build())
+            .orElseThrow(() -> new UsernameNotFoundException("Admin account not found"));
     }
 
     @Bean
