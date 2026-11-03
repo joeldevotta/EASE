@@ -30,6 +30,7 @@ ease:
     allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000,http://localhost:5173}
   admin:
     username: ${EASE_ADMIN_USERNAME}
+    email: ${EASE_ADMIN_EMAIL:}
     password: ${EASE_ADMIN_PASSWORD}
   lost-found:
     upload-dir: ${EASE_LOST_FOUND_UPLOAD_DIR:./data/lost-found-images}
